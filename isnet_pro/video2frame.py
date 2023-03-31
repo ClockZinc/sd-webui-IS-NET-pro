@@ -71,7 +71,7 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps):
                 break
 
             # 指定输出文件名
-            # output_file = os.path.join(output_folder, f'{frame_count:04d}.png')
+            output_file = os.path.join(output_folder, f'{frame_count:04d}.png')
             print('\r geneframe:',output_file,end='')
 
             # 保存帧到输出文件
