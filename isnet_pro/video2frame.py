@@ -62,7 +62,7 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps):
         # 逐帧读取视频并保存到输出文件夹
         frame_count = 1
         num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        for i in tqdm.tqdm(range(num_frames)):
+        for i in tqdm(range(num_frames)):
             # 读取一帧
             ret, frame = cap.read()
 
