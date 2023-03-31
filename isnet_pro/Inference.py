@@ -53,8 +53,8 @@ def download_model(model_name, url, model_dir='saved_models'):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_dir, model_dir)
     if not os.path.exists(model_path):
-        os.makedirs(model_path)
-
+        raise ValueError(f'{model_dir} does not exist.')
+    
     file_path = os.path.join(model_path, model_name)
 
     if not os.path.exists(file_path):
