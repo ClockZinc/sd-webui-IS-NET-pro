@@ -64,7 +64,7 @@ def download_model(model_name, url, model_dir='saved_models'):
         print('Download isnet.pth completed.')
 
 download_model(model_name = 'isnet.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/blob/main/isnet.pth',model_dir='..\saved_models')
-download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/blob/main/isnet-general-use.pth',model_dir='..\saved_models')
+download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/blob/main/isnet-general-use.pth',model_dir='..\saved_models\IS-Net')
 
 
 
