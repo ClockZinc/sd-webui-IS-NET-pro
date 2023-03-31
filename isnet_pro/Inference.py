@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 import os
 import time
 import numpy as np
@@ -13,11 +16,12 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torchvision.transforms.functional import normalize
 import sys
-# sys.path.append('./')
+sys.path.append('./')
 # sys.path.append('demo_datasets\your_dataset')
 from models_DIS import *
-import warnings
-warnings.filterwarnings("ignore")
+import urllib.request
+
+
 # def pic_feature_abstract(target_img,normalized_gray,mode,img_bacground):
 #     if mode == 'alpha_channel':
 #         # 四通道生成图片
@@ -32,6 +36,44 @@ warnings.filterwarnings("ignore")
 #     elif mode == 'self_design_Background':
 #         target_img = target_img * normalized_gray + img_bacground * (1-normalized_gray)
 #         return target_img
+
+def download_model(model_name, url, model_dir='saved_models'):
+    """
+    下载指定名称的模型文件，并保存到指定路径下的 saved_models 文件夹中。
+    如果本地已存在同名的模型文件，则不进行下载操作。
+
+    Args:
+        model_name (str): 模型文件的名称，例如 'isnet.pth'。
+        url (str): 模型文件所在的 URL。
+        model_dir (str): 模型文件保存的路径，默认为 'saved_models'。
+
+    Returns:
+        None
+    """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(current_dir, model_dir)
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    file_path = os.path.join(model_path, model_name)
+
+    if not os.path.exists(file_path):
+        print(f'Downloading {model_name} completed.')
+        with tqdm(unit='B', unit_scale=True, miniters=1, desc=model_name) as t:
+            urllib.request.urlretrieve(url, filename=file_path, reporthook=lambda x, y, z: t.update(y))
+        print('Download isnet.pth completed.')
+
+download_model(model_name = 'isnet.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/blob/main/isnet.pth',model_dir='..\saved_models')
+download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/blob/main/isnet-general-use.pth',model_dir='..\saved_models')
+
+
+
+
+
+
+
+
+
 
 def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground):
     mode_dict = {
