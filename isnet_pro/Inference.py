@@ -58,7 +58,7 @@ def download_model(model_name, url, model_dir='saved_models'):
     file_path = os.path.join(model_path, model_name)
 
     if not os.path.exists(file_path):
-        print(f'Downloading {model_name} completed.')
+        print(f'Downloading {model_name} ......')
         with tqdm(unit='B', unit_scale=True, miniters=1, desc=model_name) as t:
             urllib.request.urlretrieve(url, filename=file_path, reporthook=lambda x, y, z: t.update(y))
         print('Download isnet.pth completed.')
