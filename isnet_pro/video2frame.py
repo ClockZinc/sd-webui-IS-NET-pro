@@ -53,7 +53,7 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps):
             if ret:
                 # 指定输出文件名
                 output_file = os.path.join(output_folder, f'{frame_count:04d}.png')
-                print('\r geneframe:',output_file,end='')
+                # print('\r geneframe:',output_file,end='')
 
                 # 保存帧到输出文件
                 cv2.imwrite(output_file, frame)
@@ -72,7 +72,7 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps):
 
             # 指定输出文件名
             output_file = os.path.join(output_folder, f'{frame_count:04d}.png')
-            print('\r geneframe:',output_file,end='')
+            # print('\r geneframe:',output_file,end='')
 
             # 保存帧到输出文件
             cv2.imwrite(output_file, frame)
@@ -144,7 +144,7 @@ def frame2video_alpga(image_folder,ouput_dir,fps):
     return ":) done"
 
 if __name__ == '__main__':
-    image_folder = r"D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output1"
-    ouput_dir = r"D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output1"
+    image_folder = r"D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output4"
+    ouput_dir = r"D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output4"
     fps = 30
-    frame2video_alpga(image_folder,ouput_dir,fps)
+    frame2video(image_folder,ouput_dir,fps)
