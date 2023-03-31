@@ -53,7 +53,7 @@ def download_model(model_name, url, model_dir='saved_models'):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_dir, model_dir)
     if not os.path.exists(model_path):
-        raise ValueError(f'{model_dir} does not exist.')
+        raise ValueError(f'{model_path} does not exist.')
     
     file_path = os.path.join(model_path, model_name)
 
@@ -62,7 +62,6 @@ def download_model(model_name, url, model_dir='saved_models'):
         with tqdm(unit='B', unit_scale=True, miniters=1, desc=model_name) as t:
             urllib.request.urlretrieve(url, filename=file_path, reporthook=lambda x, y, z: t.update(y))
         print('Download isnet.pth completed.')
-
 # download_model(model_name = 'isnet.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/blob/main/isnet.pth',model_dir='..\saved_models')
 download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth',model_dir='..\saved_models\IS-Net')
 

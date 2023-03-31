@@ -11,5 +11,4 @@
 
 # Ignore large media files
 # my_large_file.mp4
-saved_models/isnet.pth
-saved_models/IS-Net/isnet-general-use.pth
+*.pth
