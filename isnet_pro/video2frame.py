@@ -3,9 +3,6 @@ import os
 from tqdm import tqdm
 import numpy as np
 
-
-
-
 def ui_frame2video(image_folder,ouput_dir,fps,mode):
     print("\n IS-NET_pro:frame2video generating...")
     if mode =='.mp4':
@@ -15,7 +12,7 @@ def ui_frame2video(image_folder,ouput_dir,fps,mode):
 
 
 
-def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps):
+def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps,time_range_checkbox,start_time,end_time):
     print("\n IS-NET_pro:video2frame generating...")
 
     # 读取视频文件
@@ -31,6 +28,10 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    start_frame = int(start_time * fps)
+    end_frame = int(end_time * fps)
+
     ## 两种情况运行和不允许
     if aim_fps_checkbox:
         video_fps = cap.get(cv2.CAP_PROP_FPS)
@@ -43,7 +44,10 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps):
         total_output_frames = int( total_frames * aim_fps / video_fps)
 
     # 生成需要输出的帧的索引
-        frame_indexes = np.linspace(0, total_frames - 1, total_output_frames, dtype=np.int)
+        if time_range_checkbox:
+            frame_indexes = np.linspace(max(start_frame,0), total_frames - 1, min(total_output_frames,end_frame), dtype=np.int)
+        else :
+            frame_indexes = np.linspace(0, total_frames - 1, total_output_frames, dtype=np.int)
         frame_count = 1
         for i in tqdm(frame_indexes):
         # 设置读取帧的位置
@@ -69,16 +73,16 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps):
             # 检查是否成功读取帧
             if not ret:
                 break
-
+            if (i >= start_frame and i <= end_frame) or (not time_range_checkbox):
             # 指定输出文件名
-            output_file = os.path.join(output_folder, f'{frame_count:04d}.png')
-            # print('\r geneframe:',output_file,end='')
+                output_file = os.path.join(output_folder, f'{frame_count:04d}.png')
+                # print('\r geneframe:',output_file,end='')
 
-            # 保存帧到输出文件
-            cv2.imwrite(output_file, frame)
+                # 保存帧到输出文件
+                cv2.imwrite(output_file, frame)
 
-            # 更新帧计数器
-            frame_count += 1
+                # 更新帧计数器
+                frame_count += 1
 
     # 释放视频对象
     cap.release()

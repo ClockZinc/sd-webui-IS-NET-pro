@@ -23,10 +23,14 @@ def on_ui_tabs():
                                         step=1,
                                         label='输出帧率',
                                         value=30,interactive=True)
+                                with gr.Row(variant='panel'):
+                                    time_range_checkbox = gr.Checkbox(label="启用时间段裁剪")
+                                    aim_start_time = gr.Number(value=0,label="裁剪起始时间(s)\\start_time",)
+                                    aim_end_time = gr.Number(value=0,label="裁剪停止时间(s)\\end_time")
                                 frame_output_dir = gr.Textbox(label='图片输出地址\\Frame Output directory', lines=1,placeholder='output\\folder')
                                 btn = gr.Button(value="gene_frame")
                                 out = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
-                                btn.click(video2frame, inputs=[video_input_dir, frame_output_dir,aim_fps_checkbox,aim_fps],outputs=out)
+                                btn.click(video2frame, inputs=[video_input_dir, frame_output_dir,aim_fps_checkbox,aim_fps,time_range_checkbox,aim_start_time,aim_end_time],outputs=out)
                     # with gr.TabItem(label='video2frame'):
                     #     with gr.Row(variant='panel'):
                             with gr.Column(variant='panel'):
