@@ -116,8 +116,8 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
     net.eval()   
     # bc_list = glob(background_path+".jpg")+glob(background_path+".JPG")+glob(background_path+".jpeg")+glob(background_path+".JPEG")+glob(background_path+".png")+glob(background_path+".PNG")+glob(background_path+".bmp")+glob(background_path+".BMP")+glob(background_path+".tiff")+glob(background_path+".TIFF")
     # im_list = glob(dataset_path+"\*.jpg")+glob(dataset_path+"\*.JPG")+glob(dataset_path+"\*.jpeg")+glob(dataset_path+"\*.JPEG")+glob(dataset_path+"\*.png")+glob(dataset_path+"\*.PNG")+glob(dataset_path+"\*.bmp")+glob(dataset_path+"\*.BMP")+glob(dataset_path+"\*.tiff")+glob(dataset_path+"\*.TIFF")
-    im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '\*.' + ext.lower())]
-    bc_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(background_path + '\*.' + ext.lower())]
+    im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '/*.' + ext.lower())]
+    bc_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(background_path + '/*.' + ext.lower())]
 
 
     with torch.no_grad():
