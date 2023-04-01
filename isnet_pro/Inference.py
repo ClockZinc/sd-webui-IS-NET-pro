@@ -53,7 +53,7 @@ def download_model(model_name, url, model_dir='saved_models'):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_dir, model_dir)
     if not os.path.exists(model_path):
-        file_path_saved_models = os.path.join(current_dir, "..\saved_models")
+        file_path_saved_models = os.path.join(current_dir, "../saved_models")
         if not os.path.exists(file_path_saved_models):
             os.mkdir(file_path_saved_models)
         os.mkdir(model_path)
@@ -66,7 +66,7 @@ def download_model(model_name, url, model_dir='saved_models'):
             urllib.request.urlretrieve(url, filename=file_path, reporthook=lambda x, y, z: t.update(y))
         print('Download isnet.pth completed.')
 # download_model(model_name = 'isnet.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/blob/main/isnet.pth',model_dir='..\saved_models')
-download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth',model_dir='..\saved_models\IS-Net')
+download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth',model_dir='../saved_models/IS-Net')
 
 def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground):
     mode_dict = {

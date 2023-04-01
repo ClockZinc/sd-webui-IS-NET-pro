@@ -97,7 +97,7 @@ def frame2video(image_folder,ouput_dir,fps):
 
     # 创建输出视频对象
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(ouput_dir+'\output.mp4', fourcc, fps, (width, height), isColor=True)
+    out = cv2.VideoWriter(ouput_dir+'/output.mp4', fourcc, fps, (width, height), isColor=True)
     num_images = len(image_files)
     frame_num = 0
     # 逐帧写入视频帧
@@ -127,7 +127,7 @@ def frame2video_alpga(image_folder,ouput_dir,fps):
     # 格式表在这里：自己查一下对照表
     # https://learn.microsoft.com/en-us/windows/win32/medfound/video-fourccs
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(ouput_dir+'\output.avi', fourcc, fps, (width, height), isColor=True)
+    out = cv2.VideoWriter(ouput_dir+'/output.avi', fourcc, fps, (width, height), isColor=True)
     num_images = len(image_files)
     frame_num = 0
     # 逐帧写入视频帧
