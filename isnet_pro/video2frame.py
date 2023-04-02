@@ -2,7 +2,6 @@ import cv2
 import os
 from tqdm import tqdm
 import numpy as np
-
 def ui_frame2video(image_folder,ouput_dir,fps,mode):
     print("\n IS-NET_pro:frame2video generating...")
     if mode =='.mp4':
