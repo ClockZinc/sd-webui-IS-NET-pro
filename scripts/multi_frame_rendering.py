@@ -1,6 +1,6 @@
 # Original Xanthius (https://xanthius.itch.io/multi-frame-rendering-for-stablediffusion)
 # Modified OedoSoldier [大江户战士] (https://space.bilibili.com/55123)
-# Modified ClockZinc [星瞳毒唯](https://space.bilibili.com/113557956) 20230402
+# Modified ClockZinc [星瞳毒唯](https://space.bilibili.com/113557956)
 import numpy as np
 from tqdm import trange
 from PIL import Image, ImageSequence, ImageDraw, ImageFilter, PngImagePlugin
@@ -25,7 +25,11 @@ import piexif.helper
 import os
 import re
 import pandas as pd
+MY_GLOBAL_VALUE_ITERATION_NUM = 0
 
+def modify_global_variable(num):
+    global MY_GLOBAL_VALUE_ITERATION_NUM
+    MY_GLOBAL_VALUE_ITERATION_NUM = num
 
 def gr_show(visible=True):
     return {"visible": visible, "__type__": "update"}
@@ -92,11 +96,17 @@ class Script(scripts.Script):
         loopback_source = gr.Dropdown(
             label="Loopback source",
             choices=[
+                "None",
                 "Previous",
                 "Current",
                 "First"],
             value="Current")
-        
+        org_alpha = gr.Slider(
+            minimum=0,
+            maximum=1,
+            step=0.05,
+            label='图片可视度',
+            value=1)
         single_mode_checkbox = gr.Checkbox(label="单图模式\\single mode")
         with gr.Row():
             use_txt = gr.Checkbox(label='Read tags from text files')
@@ -141,7 +151,8 @@ class Script(scripts.Script):
             table_content,
             use_txt,
             txt_path,
-            single_mode_checkbox]
+            single_mode_checkbox,
+            org_alpha]
 
     def run(
             self,
@@ -158,7 +169,8 @@ class Script(scripts.Script):
             table_content,
             use_txt,
             txt_path,
-            single_mode_checkbox):
+            single_mode_checkbox,
+            org_alpha):
         freeze_seed = not unfreeze_seed
         # second_flag = False
 
@@ -231,7 +243,7 @@ class Script(scripts.Script):
         p.control_net_resize_mode = "Just Resize"
         # p.control_net_resize_mode = "Scale to Fit (Inner Fit)"
         if single_mode_checkbox :
-            print("MFR::Single mode OPEN!!!")
+            print("ISNET::MFR::Single mode OPEN!!!")
             third_frame_image = "None"
         for i in range(loops):
             if state.interrupted:
@@ -251,6 +263,10 @@ class Script(scripts.Script):
                     loopback_image = p.control_net_input_image
                 elif loopback_source == "First":
                     loopback_image = history
+                elif loopback_source == "None":
+                    img2 = Image.new("RGBA", (initial_width, p.height), "white")
+                    loopback_image = Image.new("RGBA", (initial_width, p.height),"white")
+                    loopback_image = Image.blend(img2, loopback_image, org_alpha)
 
                 if third_frame_image != "None":
                     p.width = initial_width * 3
@@ -344,6 +360,11 @@ class Script(scripts.Script):
                 p.denoising_strength = first_denoise
                 p.control_net_input_image = p.control_net_input_image.resize(
                     (initial_width, p.height))
+                init_image_for_0 = Image.open(reference_imgs[0]).convert("RGBA").resize((p.width, p.height), Image.ANTIALIAS)
+                img2 = Image.new("RGBA", (initial_width, p.height), "white")
+                init_image_for_0 = Image.blend(img2, init_image_for_0, org_alpha)
+                p.init_images = [init_image_for_0
+                    ]
                 # frames.append(p.control_net_input_image)
 
             # if opts.img2img_color_correction:
