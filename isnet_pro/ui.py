@@ -1,6 +1,6 @@
 import gradio as gr
 from isnet_pro.video2frame import video2frame,ui_frame2video
-from isnet_pro.Inference import pic_generation
+from isnet_pro.Inference import pic_generation,ui_invert_image
 def on_ui_tabs():
     with gr.Blocks(analytics_enabled=False) as pro_interface:
         with gr.Row().style(equal_height=False):
@@ -131,6 +131,17 @@ def on_ui_tabs():
                                     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
 
                                 IS_btn.click(pic_generation,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth],outputs=IS_out1)
+                    with gr.TabItem(label='InventColor'):
+                        with gr.Row(variant='panel'):
+                            with gr.Column(variant='panel'):
+                                gr.Markdown(""" 
+                                ## 图片反色
+                                """)
+                                IS_frame_input_dir = gr.Textbox(label='图片输入地址\\frame_input_dir',lines=1,placeholder='input\\folder')
+                                IS_frame_output_dir = gr.Textbox(label='图片输出地址\\frame_output_dir',lines=1,placeholder='output\\folder')
+                            inv_btn = gr.Button(value="开始生成\\gene_frame")
+                            inv_btn.click(fn=ui_invert_image,inputs=[IS_frame_input_dir,IS_frame_output_dir])
+                            
                                 
 
                                     

@@ -104,7 +104,7 @@ class Script(scripts.Script):
         org_alpha = gr.Slider(
             minimum=0,
             maximum=1,
-            step=0.05,
+            step=0.01,
             label='图片可视度',
             value=1)
         single_mode_checkbox = gr.Checkbox(label="单图模式\\single mode")
@@ -246,6 +246,7 @@ class Script(scripts.Script):
             print("ISNET::MFR::Single mode OPEN!!!")
             third_frame_image = "None"
         for i in range(loops):
+            modify_global_variable(int(i))
             if state.interrupted:
                 break
             filename = os.path.basename(reference_imgs[i])
@@ -265,7 +266,9 @@ class Script(scripts.Script):
                     loopback_image = history
                 elif loopback_source == "None":
                     img2 = Image.new("RGBA", (initial_width, p.height), "white")
-                    loopback_image = Image.new("RGBA", (initial_width, p.height),"white")
+                    loopback_image = loopback_image = Image.open(
+                        reference_imgs[i]).convert("RGBA").resize(
+                        (initial_width, p.height), Image.ANTIALIAS)
                     loopback_image = Image.blend(img2, loopback_image, org_alpha)
 
                 if third_frame_image != "None":

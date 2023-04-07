@@ -4,7 +4,7 @@ warnings.filterwarnings("ignore")
 import os
 import time
 import numpy as np
-from skimage import io
+from skimage import io,color
 import time
 from glob import glob
 from tqdm import tqdm
@@ -20,8 +20,43 @@ sys.path.append('./')
 # sys.path.append('demo_datasets\your_dataset')
 from models_DIS import *
 import urllib.request
+# from PIL import Image
+def ui_invert_image(input_image_path,output_image_path):
+    im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(input_image_path + '/*.' + ext.lower())]
+    for i, im_path in tqdm(enumerate(im_list), total=len(im_list)):
+        input_image = cv2.imread(im_path)
+        neg_img = invert_image(input_image)
+        output_file = os.path.join(output_image_path, os.path.basename(im_path))
+        cv2.imwrite(output_file, neg_img)
 
+def transparent_image2whitebackground_image(img):
+    alpha = img[:, :, 3]/255.0  # 获取透明度通道
+    aim_bacground_rgb = (255,255,255)
+    img_bacground1 = np.zeros((*img.shape[0:2], 3), dtype=np.uint8)
+    img_bacground1[:] = aim_bacground_rgb
+    img_bacground = img[:, :, :3] * alpha[:,:,np.newaxis] + img_bacground1 *(1- alpha[:,:,np.newaxis])
+    return img_bacground
 
+def invert_image(image):
+    """
+    对输入的灰度图或彩色图像进行反色处理，并返回反色图像。
+    """
+    if len(image.shape) == 2:  # 灰度图像
+        neg_img = 255 - image
+    elif len(image.shape) == 3:  # 彩色图像
+        # 分离RGB通道
+        r, g, b = cv2.split(image)
+
+        # 对每个通道进行反色处理
+        neg_r = 255 - r
+        neg_g = 255 - g
+        neg_b = 255 - b
+
+        # 合并RGB通道
+        neg_img = cv2.merge((neg_r, neg_g, neg_b))
+    else:
+        raise ValueError("Invalid image shape: {}".format(image.shape))
+    return neg_img
 # def pic_feature_abstract(target_img,normalized_gray,mode,img_bacground):
 #     if mode == 'alpha_channel':
 #         # 四通道生成图片
@@ -69,6 +104,8 @@ def download_model(model_name, url, model_dir='saved_models'):
 download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth',model_dir='../saved_models/IS-Net')
 
 def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground):
+    if img_bacground.shape[2]==4:
+        img_bacground=transparent_image2whitebackground_image(img_bacground)
     mode_dict = {
         'alpha_channel': lambda: np.dstack((target_img, normalized_gray*255)),
         'white_background': lambda: target_img * normalized_gray + img_bacground * (1-normalized_gray),
@@ -182,3 +219,9 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
             io.imsave(os.path.join(result_path,im_name+".png"),np.uint8(res_pic))
             # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
 
+if __name__ == '__main__':
+    img = io.imread(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\0002.png',)
+    print(img.shape[2])
+    if img.shape[2] == 4:
+        img_bacground=transparent_image2whitebackground_image(img)
+    io.imsave(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\00020.png',np.uint8(img_bacground))
