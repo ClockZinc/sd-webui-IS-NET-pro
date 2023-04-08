@@ -44,7 +44,7 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps,time_range_che
 
     # 生成需要输出的帧的索引
         if time_range_checkbox:
-            frame_indexes = np.linspace(max(start_frame,0), total_frames - 1, min(int( (start_time-end_time) * aim_fps),end_frame), dtype=np.int)
+            frame_indexes = np.linspace(max(start_frame,0), total_frames - 1, min(int( (end_time-start_time) * aim_fps),end_frame), dtype=np.int)
         else :
             frame_indexes = np.linspace(0, total_frames - 1, total_output_frames, dtype=np.int)
         frame_count = 1
@@ -147,7 +147,7 @@ def frame2video_alpga(image_folder,ouput_dir,fps):
     return ":) done"
 
 if __name__ == '__main__':
-    image_folder = r"D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output4"
-    ouput_dir = r"D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output4"
-    fps = 30
-    frame2video(image_folder,ouput_dir,fps)
+    # image_folder = r"D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output4"
+    # ouput_dir = r"D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output4"
+    # fps = 30
+    video2frame(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\luming.mp4',r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\output2',True,15,True ,0,1)

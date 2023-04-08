@@ -498,5 +498,6 @@ class Script(scripts.Script):
         #     all_images = grids + all_images
 
         processed = Processed(p, [], initial_seed, initial_info)
+        print("\r\n-------------------\r\n ISNET::MFR is DONE! \r\n-------------------")
 
         return processed

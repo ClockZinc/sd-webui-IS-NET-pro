@@ -22,6 +22,8 @@ from models_DIS import *
 import urllib.request
 # from PIL import Image
 def ui_invert_image(input_image_path,output_image_path):
+    if not os.path.exists(output_image_path):
+        os.makedirs(output_image_path)
     im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(input_image_path + '/*.' + ext.lower())]
     for i, im_path in tqdm(enumerate(im_list), total=len(im_list)):
         input_image = cv2.imread(im_path)
@@ -116,6 +118,8 @@ def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground):
     return mode_dict[mode]()
 
 def pic_generation(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth):
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
     options = {
     "透明背景\\alpha_channel": "alpha_channel",
     "白色背景\\white_background": "white_background",
