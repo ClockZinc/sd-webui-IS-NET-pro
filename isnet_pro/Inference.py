@@ -168,6 +168,8 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
             ###
             # 输入输出的处理
             im = io.imread(im_path)
+            if im.shape[2] == 4:
+                im=transparent_image2whitebackground_image(im)
             if len(im.shape) < 3:
                 im = im[:, :, np.newaxis]
             im_shp=im.shape[0:2]
@@ -220,8 +222,10 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
                     bc_path = bc_list[i]
                     img_bacground = io.imread(bc_path)
 
-            
+            if img1.shape[2] == 4:
+                img1=transparent_image2whitebackground_image(img1)
             res_pic = pic_feature_abstract(img1,grey,mode = img_mode,img_bacground = img_bacground)
+            
 
             
             io.imsave(os.path.join(result_path,im_name+".png"),np.uint8(res_pic))
@@ -233,7 +237,8 @@ if __name__ == '__main__':
     # if img.shape[2] == 4:
     #     img_bacground=transparent_image2whitebackground_image(img)
     # io.imsave(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\00020.png',np.uint8(img_bacground))
-    img_mode = "白色背景\\white_background"
+    # img_mode = "白色背景\\white_background"
+    img_mode = "透明背景\\alpha_channel"
     dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\test1'
     background_path = ''
     result_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\test2'
