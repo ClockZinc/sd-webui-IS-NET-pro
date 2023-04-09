@@ -10,21 +10,21 @@ def on_ui_tabs():
                         with gr.Row(variant='panel'):
                             with gr.Column(variant='panel'):
                                 gr.Markdown(""" 
-                                ## 视频生成'帧'/video2frame
-                                由视频生成帧,注意视频地址要具体到哪一个视频,在下面上传你的视频吧  
+                                ## 视频生成'帧'\\video2frame
+                                在下面上传你的视频吧\\upload your video
                                 """)
                                 video_input_dir = gr.Video(lable='上传视频\\upload video',source='upload',interactive=True)
                                 video_input_dir.style(width=300)
                                 with gr.Row(variant='panel'):
-                                    aim_fps_checkbox = gr.Checkbox(label="启用输出帧率控制")
+                                    aim_fps_checkbox = gr.Checkbox(label="启用输出帧率控制\\enable the ouput fps control")
                                     aim_fps = gr.Slider(
                                         minimum=1,
                                         maximum=60,
                                         step=1,
-                                        label='输出帧率',
+                                        label='输出帧率\\output fps',
                                         value=30,interactive=True)
                                 with gr.Row(variant='panel'):
-                                    time_range_checkbox = gr.Checkbox(label="启用时间段裁剪")
+                                    time_range_checkbox = gr.Checkbox(label="启用时间段裁剪\\enable video cut")
                                     aim_start_time = gr.Number(value=0,label="裁剪起始时间(s)\\start_time",)
                                     aim_end_time = gr.Number(value=0,label="裁剪停止时间(s)\\end_time")
                                 frame_output_dir = gr.Textbox(label='图片输出地址\\Frame Output directory', lines=1,placeholder='output\\folder')
@@ -35,7 +35,7 @@ def on_ui_tabs():
                     #     with gr.Row(variant='panel'):
                             with gr.Column(variant='panel'):
                                 gr.Markdown(""" 
-                                ## 帧生成'视频'/frame2video
+                                ## 帧生成'视频'\\frame2video
                                 由图片转化为视频，注意这里只需要给出生成视频的地址即可，不要文件名！！！！  
                                 本拓展由 [_星瞳毒唯](https://space.bilibili.com/113557956)编写  
                                 本拓展GitHub项目在 [_github_sd-webui-IS-NET-pro](https://github.com/ClockZinc/sd-webui-IS-NET-pro)  
@@ -66,7 +66,7 @@ def on_ui_tabs():
                         with gr.Row(variant='panel'):
                             with gr.Column(variant='panel'):
                                 gr.Markdown(""" 
-                                ## 图片背景去除
+                                ## 图片背景去除\\Remove Background
                                 """)
                                 IS_frame_input_dir = gr.Textbox(label='图片输入地址\\frame_input_dir',lines=1,placeholder='input\\folder')
                                 IS_frame_output_dir = gr.Textbox(label='图片输出地址\\frame_output_dir',lines=1,placeholder='output\\folder')
@@ -121,12 +121,14 @@ def on_ui_tabs():
 
                             with gr.Column(variant='panel'):
                                 gr.Markdown(""" 
-                                ## 可选信息填写
-                                下面两个请根据自己情况填写，纯色背景的时候需要填写目标RGB，自定义背景和固定背景需要填写背景图片地址  
-                                固定背景默认文件夹中的第一张图片  
+                                ## 可选信息填写\\Optional Info
+                                下面两个请根据自己情况填写，纯色背景的时候需要填写目标RGB，自定义背景和固定背景需要填写背景图片地址,固定背景默认文件夹中的第一张图片  
+                                When using a `Solid_Color_Background`, you need to fill in the target RGB.
+                                For `self_design_background` and `fixed_background`, you need to fill in the background image address.
+                                The `fixed_background` mode will uses the FIRST image in the image_dir.
                                 """)
-                                IS_rgb_input = gr.Textbox(label="目标RGB",value='100,100,100',visible=True)
-                                IS_bcgrd_dir = gr.Textbox(label="背景图片地址\\background_input_dir",lines=1,placeholder='input\\folder',visible=True)
+                                IS_rgb_input = gr.Textbox(label="目标RGB\\target RGB",value='100,100,100',visible=True)
+                                IS_bcgrd_dir = gr.Textbox(label="背景图片地址\\background_input_dir",lines=1,placeholder='input\\folder  NOT input\\image.png!!!',visible=True)
                                 with gr.Column(variant='panel'):
                                     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
 
@@ -135,7 +137,7 @@ def on_ui_tabs():
                         with gr.Row(variant='panel'):
                             with gr.Column(variant='panel'):
                                 gr.Markdown(""" 
-                                ## 图片反色
+                                ## 图片反色\\Invert color
                                 """)
                                 IS_frame_input_dir = gr.Textbox(label='图片输入地址\\frame_input_dir',lines=1,placeholder='input\\folder')
                                 IS_frame_output_dir = gr.Textbox(label='图片输出地址\\frame_output_dir',lines=1,placeholder='output\\folder')

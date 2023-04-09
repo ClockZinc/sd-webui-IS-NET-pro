@@ -106,8 +106,9 @@ def download_model(model_name, url, model_dir='saved_models'):
 download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth',model_dir='../saved_models/IS-Net')
 
 def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground):
-    if img_bacground.shape[2]==4:
-        img_bacground=transparent_image2whitebackground_image(img_bacground)
+    if mode == 'self_design_Background' or mode ==  'fixed_background':
+        if img_bacground.shape[2]==4:
+            img_bacground=transparent_image2whitebackground_image(img_bacground)
     mode_dict = {
         'alpha_channel': lambda: np.dstack((target_img, normalized_gray*255)),
         'white_background': lambda: target_img * normalized_gray + img_bacground * (1-normalized_gray),
@@ -158,7 +159,8 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
     # bc_list = glob(background_path+".jpg")+glob(background_path+".JPG")+glob(background_path+".jpeg")+glob(background_path+".JPEG")+glob(background_path+".png")+glob(background_path+".PNG")+glob(background_path+".bmp")+glob(background_path+".BMP")+glob(background_path+".tiff")+glob(background_path+".TIFF")
     # im_list = glob(dataset_path+"\*.jpg")+glob(dataset_path+"\*.JPG")+glob(dataset_path+"\*.jpeg")+glob(dataset_path+"\*.JPEG")+glob(dataset_path+"\*.png")+glob(dataset_path+"\*.PNG")+glob(dataset_path+"\*.bmp")+glob(dataset_path+"\*.BMP")+glob(dataset_path+"\*.tiff")+glob(dataset_path+"\*.TIFF")
     im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '/*.' + ext.lower())]
-    bc_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(background_path + '/*.' + ext.lower())]
+    if img_mode =='self_design_Background' or img_mode =='fixed_background':
+        bc_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(background_path + '/*.' + ext.lower())]
 
 
     with torch.no_grad():
@@ -181,7 +183,9 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
             ma = torch.max(result)
             mi = torch.min(result)
             result = (result-mi)/(ma-mi)
-            im_name=im_path.split('\\')[-1].split('.')[0]
+            # im_name=im_path.split('\\')[-1].split('.')[0]
+            filename = os.path.basename(im_path)
+            im_name = os.path.splitext(filename)[0]
             # end
             ###
 
@@ -224,8 +228,15 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
             # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
 
 if __name__ == '__main__':
-    img = io.imread(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\0002.png',)
-    print(img.shape[2])
-    if img.shape[2] == 4:
-        img_bacground=transparent_image2whitebackground_image(img)
-    io.imsave(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\00020.png',np.uint8(img_bacground))
+    # img = io.imread(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\0002.png',)
+    # print(img.shape[2])
+    # if img.shape[2] == 4:
+    #     img_bacground=transparent_image2whitebackground_image(img)
+    # io.imsave(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\00020.png',np.uint8(img_bacground))
+    img_mode = "白色背景\\white_background"
+    dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\test1'
+    background_path = ''
+    result_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\test2'
+    ui_set_aim_bacground_rgb = "255,255,255"
+    IS_recstrth = 10
+    pic_generation(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth)
