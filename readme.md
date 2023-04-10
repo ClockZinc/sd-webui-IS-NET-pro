@@ -5,6 +5,8 @@
 # 主要功能
 ## 对图像的处理，以及抠图
 # How to use it
+A bilibili video as follows[BV1Fh411G7dw](https://www.bilibili.com/video/BV1Fh411G7dw)
+## example
 input folder can be anywhere in you device. It should be like D:\path\to\folder .
 ![image](https://user-images.githubusercontent.com/118424801/230843907-9432dc93-ac32-4846-bc85-4a80014bfe99.png)
 By the way, does it download any pth?
@@ -16,3 +18,14 @@ Then click the gene_frame button
 ![image](https://user-images.githubusercontent.com/118424801/230844690-f517e2d5-0ff1-4c09-8e05-fe28d61ad026.png)
 Then it generates a image with white background
 ![image](https://user-images.githubusercontent.com/118424801/230845020-522d7d80-af1f-4677-9d30-3eace505d390.png)
+## model
+The extension will create a folder with the structure, and down load a `[isnet-general-use.pth](https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth)`
+--sd-webui-IS-NET-pro
+  |
+  --saved_models
+    |
+    --IS-Net
+      |
+      --isnet-general-use.pth
+![image](https://user-images.githubusercontent.com/118424801/230846300-34c48248-5c9c-4348-8c8d-f7af90b6c966.png)
+
