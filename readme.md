@@ -4,3 +4,15 @@
 [github|DIS](https://github.com/xuebinqin/DIS)
 # 主要功能
 ## 对图像的处理，以及抠图
+# How to use it
+input folder can be anywhere in you device. It should be like D:\path\to\folder .
+![image](https://user-images.githubusercontent.com/118424801/230843907-9432dc93-ac32-4846-bc85-4a80014bfe99.png)
+By the way, does it download any pth?
+as shown in follows, the folder has a iamge(can be more), I fill in the path of it
+![image](https://user-images.githubusercontent.com/118424801/230844923-2343a923-b9cf-43c2-8aa2-904faf70a60e.png)
+The output folder, has nothing in it(it could have some)
+![image](https://user-images.githubusercontent.com/118424801/230844367-80d4bc33-62d5-4085-a4eb-02ab9d390e23.png)
+Then click the gene_frame button
+![image](https://user-images.githubusercontent.com/118424801/230844690-f517e2d5-0ff1-4c09-8e05-fe28d61ad026.png)
+Then it generates a image with white background
+![image](https://user-images.githubusercontent.com/118424801/230845020-522d7d80-af1f-4677-9d30-3eace505d390.png)
