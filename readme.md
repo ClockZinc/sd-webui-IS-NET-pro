@@ -13,8 +13,9 @@
 ![image](https://user-images.githubusercontent.com/118424801/231087560-662881ab-42dc-4c9e-b9a9-d6551fc1bc63.png)
 ![image](https://user-images.githubusercontent.com/118424801/231087606-a291a14f-c968-496e-8c90-8abb6e1bc3ff.png)
 #### self design background
-You should create a folder with background images
-![image](https://user-images.githubusercontent.com/118424801/231087832-d074f301-5947-4996-9fe2-aabd1add9294.png)
+You should create a folder with background images  
+![image](https://user-images.githubusercontent.com/118424801/231087832-d074f301-5947-4996-9fe2-aabd1add9294.png)  
+Results  
 ![image](https://user-images.githubusercontent.com/118424801/231088083-59f96d4c-232d-421f-8675-3ebff0208cb5.png)
 ### generate frames from a video(.mp4 only)
 ![image](https://user-images.githubusercontent.com/118424801/230847917-33a58f82-1d2d-4af8-bea5-a8a5166856ca.png)
