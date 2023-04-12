@@ -1,6 +1,7 @@
 import gradio as gr
 from isnet_pro.video2frame import video2frame,ui_frame2video
-from isnet_pro.Inference import pic_generation,ui_invert_image
+from isnet_pro.Inference2 import pic_generation_single,pic_generation2,ui_invert_image
+
 def on_ui_tabs():
     with gr.Blocks(analytics_enabled=False) as pro_interface:
         with gr.Row().style(equal_height=False):
@@ -62,41 +63,15 @@ def on_ui_tabs():
                                 out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
 
                                 btn1.click(ui_frame2video, inputs=[frame_input_dir, video_output_dir,fps,f2v_mode],outputs=out1)
-                    with gr.TabItem(label='ISNETpro'):
+                    with gr.TabItem(label='ISNETpro2'):
                         with gr.Row(variant='panel'):
                             with gr.Column(variant='panel'):
                                 gr.Markdown(""" 
                                 ## 图片背景去除\\Remove Background
+                                更干净的背景！！\\better performance
                                 """)
                                 IS_frame_input_dir = gr.Textbox(label='图片输入地址\\frame_input_dir',lines=1,placeholder='input\\folder')
-                                IS_frame_output_dir = gr.Textbox(label='图片输出地址\\frame_output_dir',lines=1,placeholder='output\\folder')
-                                # with gr.Tabs():
-                                #     with gr.TabItem(label='透明背景\\alpha_channel'):
-                                #         IS_mode = '透明背景\\alpha_channel'
-                                #         IS_bcgrd_dir = "0" 
-                                #         IS_rgb_input = "255,255,255"
-
-                                #     with gr.TabItem(label="白色背景\\white_background"):
-                                #         IS_mode = "白色背景\\white_background"
-                                #         IS_bcgrd_dir = "0"    
-                                #         IS_rgb_input = "255,255,255"
-
-                                #     with gr.TabItem(label="纯色背景\\Solid_Color_Background"):
-                                #         IS_mode = "纯色背景\\Solid_Color_Background"
-                                #         IS_bcgrd_dir = "0"
-                                #         IS_rgb_input = gr.Textbox(lable='目标RGB',value='100,100,100',visible=True)
-
-                                #     with gr.TabItem(label="自定义背景\\self_design_Background"):
-                                #         IS_mode = "自定义背景\\self_design_Background"
-                                #         IS_bcgrd_dir = gr.Textbox(lable='背景图片地址',lines=1,placeholder='input/folder',visible=True)
-                                #         IS_rgb_input = "255,255,255"
-
-
-                                #     with gr.TabItem(label="固定背景\\fixed_background"):
-                                #         IS_mode = "固定背景\\fixed_background"
-                                #         IS_bcgrd_dir = gr.Textbox(lable='背景图片地址',lines=1,placeholder='input/folder',visible=True)
-                                #         IS_rgb_input = "255,255,255"
-
+                                IS_frame_output_dir = gr.Textbox(label='图片输出地址\\frame_output_dir',lines=1,placeholder='output\\folder',value='./outputs/Isnet_output')
                                 IS_mode = gr.Dropdown(
                                     label="图片输出模式\\frame output mode",
                                     choices=[
@@ -106,33 +81,50 @@ def on_ui_tabs():
                                         "自定义背景\\self_design_Background",
                                         "固定背景\\fixed_background"],
                                     value="白色背景\\white_background")
-                                # if IS_mode ==  "纯色背景\\Solid_Color_Background":
-                                # elif IS_mode == "自定义背景\\self_design_Background" or IS_mode == "固定背景\\fixed_background":
-                                # else:
-                                #     IS_rgb_input = gr.Textbox(lable='目标RGB地址',value='100,100,100',visible=False)
-                                #     IS_bcgrd_dir = gr.Textbox(lable='背景图片地址',lines=1,placeholder='input/folder',visible=False)
-                                IS_recstrth = gr.Slider(
-                                    minimum=7,
-                                    maximum=13,
-                                    step=1,
-                                    label="识别强度\\Recognition strength",
-                                    value=10)
-                                IS_btn = gr.Button(value="开始生成\\gene_frame")
-
-                            with gr.Column(variant='panel'):
-                                gr.Markdown(""" 
-                                ## 可选信息填写\\Optional Info
+                                
+                                with gr.Row(variant='panel'):
+                                    reverse_checkbox = gr.Checkbox(label="反向选取\\reverse mode")
+                                    IS_recstrth = gr.Slider(
+                                        minimum=1,
+                                        maximum=255,
+                                        step=1,
+                                        label="背景去除强度\\background remove strength",
+                                        value=30)
+                                    IS_recstrth_low = gr.Slider(
+                                        minimum=1,
+                                        maximum=255,
+                                        step=1,
+                                        label="主体保留强度\\Principal retention strength",
+                                        value=40)
+                                markdown1 = gr.Markdown(""" 
+                                ### 可选信息填写\\Optional Info
                                 下面两个请根据自己情况填写，纯色背景的时候需要填写目标RGB，自定义背景和固定背景需要填写背景图片地址,固定背景默认文件夹中的第一张图片  
                                 When using a `Solid_Color_Background`, you need to fill in the target RGB.
                                 For `self_design_background` and `fixed_background`, you need to fill in the background image address.
                                 The `fixed_background` mode will uses the FIRST image in the image_dir.
-                                """)
-                                IS_rgb_input = gr.Textbox(label="目标RGB\\target RGB",value='100,100,100',visible=True)
-                                IS_bcgrd_dir = gr.Textbox(label="背景图片地址\\background_input_dir",lines=1,placeholder='input\\folder  NOT input\\image.png!!!',visible=True)
+                                """,visible=False)                                
+                                IS_rgb_input = gr.Textbox(label="目标RGB\\target RGB",value='100,100,100',visible=False)
+                                IS_bcgrd_dir = gr.Textbox(label="背景图片地址\\background_input_dir",lines=1,placeholder='input\\folder  NOT input\\image.png!!!',visible=False)
+                                def IS_mode_change(choices):
+                                    if choices == "纯色背景\\Solid_Color_Background" :
+                                        return gr.update(visible=True),gr.update(visible=False),gr.update(visible=True)
+                                    elif choices == "自定义背景\\self_design_Background" or choices=="固定背景\\fixed_background":
+                                        return gr.update(visible=False),gr.update(visible=True),gr.update(visible=True)
+                                    else:
+                                        return gr.update(visible=False),gr.update(visible=False),gr.update(visible=False)
+                                IS_mode.change(fn = IS_mode_change,inputs=[IS_mode], outputs=[IS_rgb_input,IS_bcgrd_dir,markdown1]) 
                                 with gr.Column(variant='panel'):
                                     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
-
-                                IS_btn.click(pic_generation,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth],outputs=IS_out1)
+                                    IS_btn2 = gr.Button(value="开始批量生成\\gene_batch_frame")
+                                IS_btn2.click(pic_generation2,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],outputs=IS_out1)
+                            with gr.Column(variant='panel'):
+                                IS_single_image_input_path = gr.Image(source='upload',type='filepath')
+                                IS_single_mode_btn = gr.Button(value="开始生成单图\\gene_single_image")
+                                image_show_path = gr.Gallery(label='output images')
+                                IS_single_mode_btn.click(fn=pic_generation_single,
+                                                         inputs=[IS_mode,IS_single_image_input_path,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],
+                                                         outputs=[image_show_path])
+                                                      
                     with gr.TabItem(label='InventColor'):
                         with gr.Row(variant='panel'):
                             with gr.Column(variant='panel'):

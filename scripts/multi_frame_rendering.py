@@ -22,9 +22,11 @@ import pandas as pd
 import piexif
 import piexif.helper
 
-import os
+import os,sys
 import re
 import pandas as pd
+sys.path.append('./')
+from isnet_pro.Inference2 import mask_generate
 MY_GLOBAL_VALUE_ITERATION_NUM = 0
 
 def modify_global_variable(num):
@@ -49,6 +51,11 @@ def gr_show_and_load(value=None, visible=True):
         visible = False
     return {"value": value, "visible": visible, "__type__": "update"}
 
+def get_image_mask(dataset_path,ui_set_aim_bacground_rgb,IS_recstrth,reverse_flag):
+    img_mode = "白色背景\\white_background" # placeholder
+    background_path = ''
+    mask = mask_generate(img_mode,dataset_path,background_path,ui_set_aim_bacground_rgb,IS_recstrth,0,reverse_flag)
+    return mask
 
 def sort_images(lst):
     pattern = re.compile(r"\d+(?=\.)(?!.*\d)")
@@ -501,3 +508,8 @@ class Script(scripts.Script):
         print("\r\n-------------------\r\n ISNET::MFR is DONE! \r\n-------------------")
 
         return processed
+
+
+if __name__ == '__main__':
+    A = Image.new("RGB", (100 * 3, 200), "black")
+    print('done')
