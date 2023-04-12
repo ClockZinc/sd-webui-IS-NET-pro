@@ -121,20 +121,15 @@ class Script(scripts.Script):
         with gr.Column(variant='panel',visible= False) as mask_mode_block:
             # IS_frame_input_dir = gr.Textbox(label='图片输入地址\\frame_input_dir',lines=1,placeholder='input\\folder')
             # IS_frame_output_dir = gr.Textbox(label='图片输出地址\\frame_output_dir',lines=1,placeholder='output\\folder',value='./outputs/Isnet_output')
-            reverse_checkbox = gr.Checkbox(label="反向选取\\reverse mode")
+            
             with gr.Row(variant='panel'):
+                reverse_checkbox = gr.Checkbox(label="反向选取\\reverse mode")
                 IS_recstrth = gr.Slider(
                     minimum=1,
                     maximum=255,
                     step=1,
                     label="背景去除强度\\background remove strength",
                     value=30)
-                IS_recstrth_low = gr.Slider(
-                    minimum=1,
-                    maximum=255,
-                    step=1,
-                    label="主体保留强度\\Principal retention strength",
-                    value=40)
             # with gr.Column(variant='panel'):
             #     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
             #     IS_btn2 = gr.Button(value="开始批量生成\\gene_batch_frame")
@@ -196,7 +191,7 @@ class Script(scripts.Script):
             mask_mode_checkbox,
             reverse_checkbox,
             IS_recstrth,
-            IS_recstrth_low,
+            
             ]
 
     def run(
@@ -219,7 +214,7 @@ class Script(scripts.Script):
             mask_mode_checkbox,
             reverse_checkbox,
             IS_recstrth,
-            IS_recstrth_low,
+            
             ):
         freeze_seed = not unfreeze_seed
         # second_flag = False
