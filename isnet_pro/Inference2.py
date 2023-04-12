@@ -111,8 +111,6 @@ def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground,IS_rec
     if mode == 'self_design_Background' or mode ==  'fixed_background':
         if img_bacground.shape[2]==4:
             img_bacground=transparent_image2whitebackground_image(img_bacground)
-    normalized_gray[normalized_gray < IS_recstrth] = 0
-    normalized_gray[normalized_gray > IS_recstrth_low] = 1
     mode_dict = {
         'alpha_channel': lambda: np.dstack((target_img, normalized_gray*255)),
         'white_background': lambda: target_img * normalized_gray + img_bacground * (1-normalized_gray),
@@ -228,6 +226,8 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
                 if i==0 :
                     bc_path = bc_list[i]
                     img_bacground = io.imread(bc_path)
+            grey[grey <= IS_recstrth] = 0
+            grey[grey > IS_recstrth_low] = 1
             if reverse_flag:
                 grey = 1 - grey
             if img1.shape[2] == 4:
@@ -238,7 +238,8 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
             io.imsave(os.path.join(result_path,im_name+".png"),np.uint8(res_pic))
             # return gr.update(value=result, visible=True, interactive=False)
             # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
-
+    del net
+    torch.cuda.empty_cache()
 
 def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
     if not os.path.exists(result_path):
@@ -348,17 +349,16 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
                     bc_path = bc_list[i]
                     img_bacground = io.imread(bc_path)
 
-
-            if reverse_flag:
-                grey = 1 - grey
-
             if img1.shape[2] == 4:
                 img1=transparent_image2whitebackground_image(img1)
+            grey[grey <= IS_recstrth] = 0
+            grey[grey > IS_recstrth_low] = 1
+            if reverse_flag:
+                grey = 1 - grey
             res_pic = pic_feature_abstract(img1,grey,mode = img_mode,img_bacground = img_bacground,IS_recstrth = IS_recstrth, IS_recstrth_low = IS_recstrth_low)
             
             res_pic = np.uint8(res_pic)
-            grey[grey <= IS_recstrth] = 0
-            grey[grey > IS_recstrth] = 1
+
             grey = np.tile(grey, (1, 1, 3))
             grey = (grey*255).astype(np.uint8)
             io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
@@ -367,6 +367,8 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
             # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
 
             return res_pic,grey
+    del net
+    torch.cuda.empty_cache()
 
 def mask_generate(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
     """
@@ -476,14 +478,17 @@ def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,
                     img_bacground = io.imread(bc_path)
 
 
-            if reverse_flag:
-                grey = 1 - grey
+
             grey[grey <= IS_recstrth] = 0
             grey[grey > IS_recstrth] = 1
+            if reverse_flag:
+                grey = 1 - grey
             grey = np.tile(grey, (1, 1, 3))
             grey = (grey * 255).astype(np.uint8)
             # return gr.update(value=result, visible=True, interactive=False)
             io.imsave(os.path.join(output_dir,im_name+".png"),grey)
+    del net
+    torch.cuda.empty_cache()
     return 1
 if __name__ == '__main__':
     # img = io.imread(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\0002.png',)
