@@ -51,11 +51,12 @@ def gr_show_and_load(value=None, visible=True):
         visible = False
     return {"value": value, "visible": visible, "__type__": "update"}
 
-def get_image_mask(dataset_path,ui_set_aim_bacground_rgb,IS_recstrth,reverse_flag):
+def get_image_mask(dataset_path,output_dir,IS_recstrth,reverse_flag):
     img_mode = "白色背景\\white_background" # placeholder
     background_path = ''
-    mask = mask_generate(img_mode,dataset_path,background_path,ui_set_aim_bacground_rgb,IS_recstrth,0,reverse_flag)
-    return mask
+    ui_set_aim_bacground_rgb = '1,1,1'
+    mask = mask_generate(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth,0,reverse_flag)
+    # return mask
 
 def sort_images(lst):
     pattern = re.compile(r"\d+(?=\.)(?!.*\d)")
@@ -114,7 +115,39 @@ class Script(scripts.Script):
             step=0.01,
             label='图片可视度',
             value=1)
-        single_mode_checkbox = gr.Checkbox(label="单图模式\\single mode")
+        with gr.Row():
+            single_mode_checkbox = gr.Checkbox(label="单图模式\\single mode")
+            mask_mode_checkbox = gr.Checkbox(label="掩码重绘\\mask inpaint mode")
+        with gr.Column(variant='panel',visible= False) as mask_mode_block:
+            # IS_frame_input_dir = gr.Textbox(label='图片输入地址\\frame_input_dir',lines=1,placeholder='input\\folder')
+            # IS_frame_output_dir = gr.Textbox(label='图片输出地址\\frame_output_dir',lines=1,placeholder='output\\folder',value='./outputs/Isnet_output')
+            reverse_checkbox = gr.Checkbox(label="反向选取\\reverse mode")
+            with gr.Row(variant='panel'):
+                IS_recstrth = gr.Slider(
+                    minimum=1,
+                    maximum=255,
+                    step=1,
+                    label="背景去除强度\\background remove strength",
+                    value=30)
+                IS_recstrth_low = gr.Slider(
+                    minimum=1,
+                    maximum=255,
+                    step=1,
+                    label="主体保留强度\\Principal retention strength",
+                    value=40)
+            # with gr.Column(variant='panel'):
+            #     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
+            #     IS_btn2 = gr.Button(value="开始批量生成\\gene_batch_frame")
+            # IS_btn2.click(pic_generation2,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],outputs=IS_out1)
+
+        def visible_mask_mode(mask_mode_checkbox):
+            if mask_mode_checkbox:
+                return gr.update(visible=True)
+            else:
+                return gr.update(visible=False)
+        mask_mode_checkbox.change(fn=visible_mask_mode,inputs=[mask_mode_checkbox],outputs=[mask_mode_block])
+
+
         with gr.Row():
             use_txt = gr.Checkbox(label='Read tags from text files')
 
@@ -159,7 +192,12 @@ class Script(scripts.Script):
             use_txt,
             txt_path,
             single_mode_checkbox,
-            org_alpha]
+            org_alpha,
+            mask_mode_checkbox,
+            reverse_checkbox,
+            IS_recstrth,
+            IS_recstrth_low,
+            ]
 
     def run(
             self,
@@ -177,9 +215,24 @@ class Script(scripts.Script):
             use_txt,
             txt_path,
             single_mode_checkbox,
-            org_alpha):
+            org_alpha,
+            mask_mode_checkbox,
+            reverse_checkbox,
+            IS_recstrth,
+            IS_recstrth_low,
+            ):
         freeze_seed = not unfreeze_seed
         # second_flag = False
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)       
+
+        # 在目标目录下创建一个mask文件夹，储存文件
+        if mask_mode_checkbox:
+            mask_path = os.path.join(output_dir,'mask_folder')
+            if not os.path.exists(mask_path):
+                os.makedirs(mask_path)
+            get_image_mask(input_dir,mask_path,IS_recstrth,reverse_checkbox)
+
 
         if use_csv:
             prompt_list = [i[0] for i in table_content.values.tolist()]
@@ -187,7 +240,11 @@ class Script(scripts.Script):
 
         reference_imgs = [os.path.join(input_dir,f) for f in os.listdir(input_dir) if re.match(r'.+\.(jpg|png)$',f)]
         reference_imgs = sort_images(reference_imgs)
-        print(f'Will process following files: {", ".join(reference_imgs)}')
+        if mask_mode_checkbox:
+            mask_imgs = [os.path.join(mask_path,f) for f in os.listdir(mask_path) if re.match(r'.+\.(jpg|png)$',f)]
+            mask_imgs = sort_images(mask_imgs)
+        # print(f'Will process following files: {", ".join(reference_imgs)}')
+        print(f"ISnet::MFR::will process {len(reference_imgs):4d} images")
 
         if use_txt:
             if txt_path == "":
@@ -264,6 +321,10 @@ class Script(scripts.Script):
             p.control_net_input_image = Image.open(
                 reference_imgs[i]).convert("RGB").resize(
                 (initial_width, p.height), Image.ANTIALIAS)
+            if mask_mode_checkbox:
+                Isnet_mask = Image.open(
+                    mask_imgs[i]).convert("RGB").resize(
+                    (initial_width, p.height), Image.ANTIALIAS)
 
             if(i > 0):
                 loopback_image = p.init_images[0]
@@ -303,9 +364,12 @@ class Script(scripts.Script):
 
                     latent_mask = Image.new(
                         "RGB", (initial_width * 3, p.height), "black")
-                    latent_draw = ImageDraw.Draw(latent_mask)
-                    latent_draw.rectangle(
-                        (initial_width, 0, initial_width * 2, p.height), fill="white")
+                    if mask_mode_checkbox:
+                        latent_mask.paste(Isnet_mask,(initial_width, 0))
+                    else:
+                        latent_draw = ImageDraw.Draw(latent_mask)
+                        latent_draw.rectangle(
+                            (initial_width, 0, initial_width * 2, p.height), fill="white")
                     p.image_mask = latent_mask
                     p.denoising_strength = original_denoise
                 elif not single_mode_checkbox:
@@ -331,9 +395,12 @@ class Script(scripts.Script):
                     # latent_draw.rectangle((0,0,initial_width,p.height), fill="black")
                     latent_mask = Image.new(
                         "RGB", (initial_width * 2, p.height), "black")
-                    latent_draw = ImageDraw.Draw(latent_mask)
-                    latent_draw.rectangle(
-                        (initial_width, 0, initial_width * 2, p.height), fill="white")
+                    if mask_mode_checkbox:
+                        latent_mask.paste(Isnet_mask,(initial_width, 0))
+                    else:
+                        latent_draw = ImageDraw.Draw(latent_mask)
+                        latent_draw.rectangle(
+                            (initial_width, 0, initial_width * 2, p.height), fill="white")
 
                     # p.latent_mask = latent_mask
                     p.image_mask = latent_mask
@@ -352,8 +419,11 @@ class Script(scripts.Script):
                     # latent_mask = Image.new("RGB", (initial_width*2, p.height), "white")
                     # latent_draw = ImageDraw.Draw(latent_mask)
                     # latent_draw.rectangle((0,0,initial_width,p.height), fill="black")
-                    latent_mask = Image.new(
-                        "RGB", (initial_width, p.height), "white")
+                    if mask_mode_checkbox:
+                        latent_mask = Isnet_mask
+                    else:
+                        latent_mask = Image.new(
+                            "RGB", (initial_width, p.height), "white")
                     
                     latent_draw = ImageDraw.Draw(latent_mask)
                     latent_draw.rectangle(
@@ -363,8 +433,11 @@ class Script(scripts.Script):
                     p.image_mask = latent_mask
                     p.denoising_strength = original_denoise
             else:
-                latent_mask = Image.new(
-                    "RGB", (initial_width, p.height), "white")
+                if mask_mode_checkbox:
+                    latent_mask = Isnet_mask
+                else:
+                    latent_mask = Image.new(
+                        "RGB", (initial_width, p.height), "white")
                 # p.latent_mask = latent_mask
                 p.image_mask = latent_mask
                 p.denoising_strength = first_denoise

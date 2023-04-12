@@ -7,7 +7,7 @@ from isnet_pro.Inference2 import mask_generate
 img_mode = "白色背景\\white_background"
 # img_mode = "透明背景\\alpha_channel"
 # dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\test1'
-dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\frame_output\027\0001.png'
+dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\frame_input\048\0001.png'
 background_path = ''
 result_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\test_v2f\testoutput'
 ui_set_aim_bacground_rgb = "255,255,255"

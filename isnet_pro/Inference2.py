@@ -1,7 +1,6 @@
 import warnings
 warnings.filterwarnings("ignore")
 # 主要有一个threshold
-
 import os
 import time
 import numpy as np
@@ -23,7 +22,7 @@ sys.path.append('./')
 # sys.path.append('demo_datasets\your_dataset')
 from models_DIS import *
 import urllib.request
-# from PIL import Image
+from modules.shared import state
 def ui_invert_image(input_image_path,output_image_path):
     if not os.path.exists(output_image_path):
         os.makedirs(output_image_path)
@@ -124,6 +123,7 @@ def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground,IS_rec
     return mode_dict[mode]()
 
 def pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag = False):
+    state.interrupted = False
     if not os.path.exists(result_path):
         os.makedirs(result_path)
     options = {
@@ -170,6 +170,8 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
 
     with torch.no_grad():
         for i, im_path in tqdm(enumerate(im_list), total=len(im_list)):
+            if state.interrupted:
+                break
             ###
             # 输入输出的处理
             im = io.imread(im_path)
@@ -251,8 +253,7 @@ def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_s
     img_mode = options[img_mode]
     ui_set_aim_bacground_rgb = tuple(map(int, ui_set_aim_bacground_rgb.split(",")))
     res_pic,mask= IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
-    mask = np.tile(mask, (1, 1, 3))
-    mask = Image.fromarray((mask * 255).astype(np.uint8), mode='RGB')
+    mask = Image.fromarray(mask, mode='RGB')
     res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
     print("\n:) done!")
     return [res_pic,mask]
@@ -356,14 +357,18 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
             res_pic = pic_feature_abstract(img1,grey,mode = img_mode,img_bacground = img_bacground,IS_recstrth = IS_recstrth, IS_recstrth_low = IS_recstrth_low)
             
             res_pic = np.uint8(res_pic)
-            io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
-            # return gr.update(value=result, visible=True, interactive=False)
-            # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
             grey[grey <= IS_recstrth] = 0
             grey[grey > IS_recstrth] = 1
+            grey = np.tile(grey, (1, 1, 3))
+            grey = (grey*255).astype(np.uint8)
+            io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
+            io.imsave(os.path.join(result_path,"mask"+im_name+".png"),grey)
+            # return gr.update(value=result, visible=True, interactive=False)
+            # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
+
             return res_pic,grey
 
-def mask_generate(img_mode,dataset_path,background_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
+def mask_generate(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
     """
     Output is purely mask
     """
@@ -376,12 +381,10 @@ def mask_generate(img_mode,dataset_path,background_path,ui_set_aim_bacground_rgb
     }   
     img_mode = options[img_mode]
     ui_set_aim_bacground_rgb = tuple(map(int, ui_set_aim_bacground_rgb.split(",")))
-    mask = IS_inference_mask(img_mode,dataset_path,background_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
-    mask = np.tile(mask, (1, 1, 3))
-    mask = Image.fromarray((mask * 255).astype(np.uint8), mode='RGB')
-    print("\n:) done!")
+    mask = IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
+    print("\n:) mask generate done!")
     return mask
-def IS_inference_mask(img_mode,dataset_path,background_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
+def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
     
     # ui_set_aim_bacground_rgb = (255,212,32)
     # img_mode = 'self_design_Background'
@@ -404,8 +407,8 @@ def IS_inference_mask(img_mode,dataset_path,background_path,ui_set_aim_bacground
     net.eval()   
     # bc_list = glob(background_path+".jpg")+glob(background_path+".JPG")+glob(background_path+".jpeg")+glob(background_path+".JPEG")+glob(background_path+".png")+glob(background_path+".PNG")+glob(background_path+".bmp")+glob(background_path+".BMP")+glob(background_path+".tiff")+glob(background_path+".TIFF")
     # im_list = glob(dataset_path+"\*.jpg")+glob(dataset_path+"\*.JPG")+glob(dataset_path+"\*.jpeg")+glob(dataset_path+"\*.JPEG")+glob(dataset_path+"\*.png")+glob(dataset_path+"\*.PNG")+glob(dataset_path+"\*.bmp")+glob(dataset_path+"\*.BMP")+glob(dataset_path+"\*.tiff")+glob(dataset_path+"\*.TIFF")
-    im_list = [dataset_path]
-    # im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '/*.' + ext.lower())]
+    # im_list = [dataset_path]
+    im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '/*.' + ext.lower())]
     # print(im_list)
     if img_mode =='self_design_Background' or img_mode =='fixed_background':
         bc_list = background_path
@@ -413,6 +416,8 @@ def IS_inference_mask(img_mode,dataset_path,background_path,ui_set_aim_bacground
 
     with torch.no_grad():
         for i, im_path in tqdm(enumerate(im_list), total=len(im_list)):
+            if state.interrupted:
+                break
             ###
             # 输入输出的处理
             im = io.imread(im_path)
@@ -475,9 +480,11 @@ def IS_inference_mask(img_mode,dataset_path,background_path,ui_set_aim_bacground
                 grey = 1 - grey
             grey[grey <= IS_recstrth] = 0
             grey[grey > IS_recstrth] = 1
+            grey = np.tile(grey, (1, 1, 3))
+            grey = (grey * 255).astype(np.uint8)
             # return gr.update(value=result, visible=True, interactive=False)
-            # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
-            return grey
+            io.imsave(os.path.join(output_dir,im_name+".png"),grey)
+    return 1
 if __name__ == '__main__':
     # img = io.imread(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\0002.png',)
     # print(img.shape[2])

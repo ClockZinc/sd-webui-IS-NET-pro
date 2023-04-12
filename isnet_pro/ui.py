@@ -1,7 +1,7 @@
 import gradio as gr
 from isnet_pro.video2frame import video2frame,ui_frame2video
 from isnet_pro.Inference2 import pic_generation_single,pic_generation2,ui_invert_image
-
+import modules.shared as shared
 def on_ui_tabs():
     with gr.Blocks(analytics_enabled=False) as pro_interface:
         with gr.Row().style(equal_height=False):
@@ -116,15 +116,17 @@ def on_ui_tabs():
                                 with gr.Column(variant='panel'):
                                     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
                                     IS_btn2 = gr.Button(value="开始批量生成\\gene_batch_frame")
+                                    IS_btn3 = gr.Button(value="中断\\Interupt")
                                 IS_btn2.click(pic_generation2,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],outputs=IS_out1)
+                                IS_btn3.click(fn=lambda: shared.state.interrupt(),inputs=[],outputs=[])
                             with gr.Column(variant='panel'):
                                 IS_single_image_input_path = gr.Image(source='upload',type='filepath')
                                 IS_single_mode_btn = gr.Button(value="开始生成单图\\gene_single_image")
-                                image_show_path = gr.Gallery(label='output images')
+                                image_show_path = gr.Gallery(label='output images').style(grid=2,height=720)
                                 IS_single_mode_btn.click(fn=pic_generation_single,
-                                                         inputs=[IS_mode,IS_single_image_input_path,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],
-                                                         outputs=[image_show_path])
-                                                      
+                                                        inputs=[IS_mode,IS_single_image_input_path,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],
+                                                        outputs=[image_show_path])
+                                                    
                     with gr.TabItem(label='InventColor'):
                         with gr.Row(variant='panel'):
                             with gr.Column(variant='panel'):
@@ -136,11 +138,4 @@ def on_ui_tabs():
                             inv_btn = gr.Button(value="开始生成\\gene_frame")
                             inv_btn.click(fn=ui_invert_image,inputs=[IS_frame_input_dir,IS_frame_output_dir])
                             
-                                
-
-                                    
-
-
-
-
     return [(pro_interface, "isnet_Pro", "isnet_Pro")]
