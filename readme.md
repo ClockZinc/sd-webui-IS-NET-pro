@@ -11,6 +11,13 @@ git clone https://github.com/ClockZinc/sd-webui-IS-NET-pro
 ### Stingy picture
 My plugin can batch generate images as well as generate a single image. In single image mode, the result will be displayed directly. 
 ![image](https://user-images.githubusercontent.com/118424801/232211245-a8e8d610-79eb-45b4-add6-8bffa990751d.png)
+## Masked Multi Frame Render
+In img2img mode, at the bottom of the page, open "ISnet::MFR".
+![image](https://user-images.githubusercontent.com/118424801/232223011-718bea30-713c-4357-a195-611a9163c745.png)
+![image](https://user-images.githubusercontent.com/118424801/232223031-7629a917-7d2a-4bfa-ae50-2da8102ed0e1.png)
+It can batch generate image using inpaint
+Which can only modify the masked area. It will also generates a mask folder.
+![image](https://user-images.githubusercontent.com/118424801/232223133-48a72a1a-0b71-43c9-980d-5aa88f69fd21.png)
 # How to use it
 New functions in New Version [BV1nk4y1e76X](https://www.bilibili.com/video/BV1nk4y1e76X)  
 A bilibili video as follows[BV1Fh411G7dw](https://www.bilibili.com/video/BV1Fh411G7dw)
