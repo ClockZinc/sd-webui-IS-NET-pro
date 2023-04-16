@@ -224,13 +224,14 @@ class Script(scripts.Script):
 
         # 在目标目录下创建一个mask文件夹，储存文件
         if mask_mode_checkbox:
-            if mask_dir:
+            if mask_dir: # 
                 mask_path = mask_dir
                 if not os.path.exists(mask_path):
-                    os.makedirs(mask_path)
+                    print("Mask folder not detected")
             else:
                 mask_path = os.path.join(output_dir,'mask_folder')
-            if not mask_dir:
+                if not os.path.exists(mask_path):
+                    os.makedirs(mask_path)
                 get_image_mask(input_dir,mask_path,IS_recstrth,reverse_checkbox)
             
 
