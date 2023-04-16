@@ -130,6 +130,7 @@ class Script(scripts.Script):
                     step=1,
                     label="背景去除强度\\background remove strength",
                     value=30)
+            mask_dir = gr.Textbox(label='Mask Input directory', lines=1)
             # with gr.Column(variant='panel'):
             #     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
             #     IS_btn2 = gr.Button(value="开始批量生成\\gene_batch_frame")
@@ -191,7 +192,7 @@ class Script(scripts.Script):
             mask_mode_checkbox,
             reverse_checkbox,
             IS_recstrth,
-            
+            mask_dir,
             ]
 
     def run(
@@ -214,7 +215,7 @@ class Script(scripts.Script):
             mask_mode_checkbox,
             reverse_checkbox,
             IS_recstrth,
-            
+            mask_dir,
             ):
         freeze_seed = not unfreeze_seed
         # second_flag = False
@@ -223,10 +224,15 @@ class Script(scripts.Script):
 
         # 在目标目录下创建一个mask文件夹，储存文件
         if mask_mode_checkbox:
-            mask_path = os.path.join(output_dir,'mask_folder')
-            if not os.path.exists(mask_path):
-                os.makedirs(mask_path)
-            get_image_mask(input_dir,mask_path,IS_recstrth,reverse_checkbox)
+            if mask_dir:
+                mask_path = mask_dir
+                if not os.path.exists(mask_path):
+                    os.makedirs(mask_path)
+            else:
+                mask_path = os.path.join(output_dir,'mask_folder')
+            if not mask_dir:
+                get_image_mask(input_dir,mask_path,IS_recstrth,reverse_checkbox)
+            
 
 
         if use_csv:

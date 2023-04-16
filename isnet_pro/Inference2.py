@@ -420,6 +420,12 @@ def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,
         for i, im_path in tqdm(enumerate(im_list), total=len(im_list)):
             if state.interrupted:
                 break
+            filename = os.path.basename(im_path)
+            im_name = os.path.splitext(filename)[0]
+            mask_ouput_path = os.path.join(output_dir,im_name+".png")
+            if os.path.exists(mask_ouput_path):
+                print("skip generates:",mask_ouput_path)
+                continue
             ###
             # 输入输出的处理
             im = io.imread(im_path)
@@ -441,8 +447,8 @@ def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,
             mi = torch.min(result)
             result = (result-mi)/(ma-mi)
             # im_name=im_path.split('\\')[-1].split('.')[0]
-            filename = os.path.basename(im_path)
-            im_name = os.path.splitext(filename)[0]
+            # filename = os.path.basename(im_path)
+            # im_name = os.path.splitext(filename)[0]
             # end
             ###
 
@@ -486,7 +492,7 @@ def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,
             grey = np.tile(grey, (1, 1, 3))
             grey = (grey * 255).astype(np.uint8)
             # return gr.update(value=result, visible=True, interactive=False)
-            io.imsave(os.path.join(output_dir,im_name+".png"),grey)
+            io.imsave(mask_ouput_path,grey)
     del net
     torch.cuda.empty_cache()
     return 1
