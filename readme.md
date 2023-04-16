@@ -1,25 +1,25 @@
 # sd-webui-IS-net
 在大佬的基础上做了一个简单的插件  
+Just  git it in your extensions folder in your Stable-Diffusion-WebUI  
+```
+git clone https://github.com/ClockZinc/sd-webui-IS-NET-pro
+```
 ## 大佬论文开源库：
 [github|DIS](https://github.com/xuebinqin/DIS)
 # 主要功能|functions
-## 对图像的处理，以及抠图|image process
-### remove background (.png recommended)
-#### white background mode
-![image](https://user-images.githubusercontent.com/118424801/230847648-901bc3b4-c44c-4d9c-a609-d226019ea5b9.png)
-#### alpha
-![image](https://user-images.githubusercontent.com/118424801/231087354-6b4fa51b-3be7-419b-a289-f185f0e627fb.png)
-#### pure color
-![image](https://user-images.githubusercontent.com/118424801/231087560-662881ab-42dc-4c9e-b9a9-d6551fc1bc63.png)
-![image](https://user-images.githubusercontent.com/118424801/231087606-a291a14f-c968-496e-8c90-8abb6e1bc3ff.png)
-#### self design background
-You should create a folder with background images  
-![image](https://user-images.githubusercontent.com/118424801/231087832-d074f301-5947-4996-9fe2-aabd1add9294.png)  
-Results  
-![image](https://user-images.githubusercontent.com/118424801/231088083-59f96d4c-232d-421f-8675-3ebff0208cb5.png)
-### generate frames from a video(.mp4 only)
-![image](https://user-images.githubusercontent.com/118424801/230847917-33a58f82-1d2d-4af8-bea5-a8a5166856ca.png)
+## 对图像的处理，以及抠图|image processing
+### Stingy picture
+My plugin can batch generate images as well as generate a single image. In single image mode, the result will be displayed directly. 
+![image](https://user-images.githubusercontent.com/118424801/232211245-a8e8d610-79eb-45b4-add6-8bffa990751d.png)
+## Masked Multi Frame Render
+In img2img mode, at the bottom of the page, open "ISnet::MFR".
+![image](https://user-images.githubusercontent.com/118424801/232223011-718bea30-713c-4357-a195-611a9163c745.png)
+![image](https://user-images.githubusercontent.com/118424801/232223031-7629a917-7d2a-4bfa-ae50-2da8102ed0e1.png)
+It can batch generate image using inpaint
+Which can only modify the masked area. It will also generates a mask folder.
+![image](https://user-images.githubusercontent.com/118424801/232223133-48a72a1a-0b71-43c9-980d-5aa88f69fd21.png)
 # How to use it
+New functions in New Version [BV1nk4y1e76X](https://www.bilibili.com/video/BV1nk4y1e76X)  
 A bilibili video as follows[BV1Fh411G7dw](https://www.bilibili.com/video/BV1Fh411G7dw)
 ## example
 input folder can be anywhere in you device. It should be like D:\path\to\folder .  
