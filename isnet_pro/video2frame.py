@@ -44,7 +44,7 @@ def video2frame(video_path,output_folder,aim_fps_checkbox,aim_fps,time_range_che
 
     # 生成需要输出的帧的索引
         if time_range_checkbox:
-            frame_indexes = np.linspace(max(start_frame,0), total_frames - 1, min(int( (end_time-start_time) * aim_fps),end_frame), dtype=np.int)
+            frame_indexes = np.linspace(max(start_frame,0), min(total_frames - 1,end_frame - 1 ), min(int( (end_time-start_time) * aim_fps),end_frame), dtype=np.int)
         else :
             frame_indexes = np.linspace(0, total_frames - 1, total_output_frames, dtype=np.int)
         frame_count = 1
