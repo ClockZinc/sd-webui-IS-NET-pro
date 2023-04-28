@@ -279,7 +279,7 @@ class Script(scripts.Script):
         initial_width = p.width
         initial_img = reference_imgs[0]  # p.init_images[0]
         p.init_images = [
-            Image.open(initial_img).convert("RGB").resize(
+            Image.open(initial_img).convert("RGBA").resize(
                 (initial_width, p.height), Image.ANTIALIAS)]
 
         # grids = []
@@ -321,11 +321,11 @@ class Script(scripts.Script):
             p.do_not_save_grid = True
             # 选择controlnet输入的图像
             p.control_net_input_image = Image.open(
-                reference_imgs[i]).convert("RGB").resize(
+                reference_imgs[i]).convert("RGBA").resize(
                 (initial_width, p.height), Image.ANTIALIAS)
             if mask_mode_checkbox:
                 Isnet_mask = Image.open(
-                    mask_imgs[i]).convert("RGB").resize(
+                    mask_imgs[i]).convert("RGBA").resize(
                     (initial_width, p.height), Image.ANTIALIAS)
 
             if(i > 0):
@@ -335,15 +335,16 @@ class Script(scripts.Script):
                 elif loopback_source == "First":
                     loopback_image = history
                 elif loopback_source == "None":
-                    img2 = Image.new("RGBA", (initial_width, p.height), "white")
-                    loopback_image = loopback_image = Image.open(
+                    loopback_image = Image.open(
                         reference_imgs[i]).convert("RGBA").resize(
                         (initial_width, p.height), Image.ANTIALIAS)
-                    loopback_image = Image.blend(img2, loopback_image, org_alpha)
+                    if org_alpha != 1:
+                        img2 = Image.new("RGBA", (initial_width, p.height), "white")
+                        loopback_image = Image.blend(img2, loopback_image, org_alpha)
 
                 if third_frame_image != "None":
                     p.width = initial_width * 3
-                    img = Image.new("RGB", (initial_width * 3, p.height))
+                    img = Image.new("RGBA", (initial_width * 3, p.height))
                     img.paste(p.init_images[0], (0, 0))
                     # img.paste(p.init_images[0], (initial_width, 0))
                     img.paste(loopback_image, (initial_width, 0))
@@ -355,17 +356,17 @@ class Script(scripts.Script):
                         p.color_corrections = [
                             processing.setup_color_correction(img)]
 
-                    msk = Image.new("RGB", (initial_width * 3, p.height))
-                    msk.paste(Image.open(reference_imgs[i - 1]).convert("RGB").resize(
+                    msk = Image.new("RGBA", (initial_width * 3, p.height))
+                    msk.paste(Image.open(reference_imgs[i - 1]).convert("RGBA").resize(
                         (initial_width, p.height), Image.ANTIALIAS), (0, 0))
                     msk.paste(p.control_net_input_image, (initial_width, 0))
 
-                    msk.paste(Image.open(reference_imgs[third_image_index]).convert("RGB").resize(
+                    msk.paste(Image.open(reference_imgs[third_image_index]).convert("RGBA").resize(
                         (initial_width, p.height), Image.ANTIALIAS), (initial_width * 2, 0))
                     p.control_net_input_image = msk
 
                     latent_mask = Image.new(
-                        "RGB", (initial_width * 3, p.height), "black")
+                        "RGBA", (initial_width * 3, p.height), "black")
                     if mask_mode_checkbox:
                         latent_mask.paste(Isnet_mask,(initial_width, 0))
                     else:
@@ -376,7 +377,7 @@ class Script(scripts.Script):
                     p.denoising_strength = original_denoise
                 elif not single_mode_checkbox:
                     p.width = initial_width * 2
-                    img = Image.new("RGB", (initial_width * 2, p.height))
+                    img = Image.new("RGBA", (initial_width * 2, p.height))
                     img.paste(p.init_images[0], (0, 0))
                     # img.paste(p.init_images[0], (initial_width, 0))
                     img.paste(loopback_image, (initial_width, 0))
@@ -385,18 +386,18 @@ class Script(scripts.Script):
                         p.color_corrections = [
                             processing.setup_color_correction(img)]
 
-                    msk = Image.new("RGB", (initial_width * 2, p.height))
-                    msk.paste(Image.open(reference_imgs[i - 1]).convert("RGB").resize(
+                    msk = Image.new("RGBA", (initial_width * 2, p.height))
+                    msk.paste(Image.open(reference_imgs[i - 1]).convert("RGBA").resize(
                         (initial_width, p.height), Image.ANTIALIAS), (0, 0))
                     msk.paste(p.control_net_input_image, (initial_width, 0))
                     p.control_net_input_image = msk
                     # frames.append(msk)
 
-                    # latent_mask = Image.new("RGB", (initial_width*2, p.height), "white")
+                    # latent_mask = Image.new("RGBA", (initial_width*2, p.height), "white")
                     # latent_draw = ImageDraw.Draw(latent_mask)
                     # latent_draw.rectangle((0,0,initial_width,p.height), fill="black")
                     latent_mask = Image.new(
-                        "RGB", (initial_width * 2, p.height), "black")
+                        "RGBA", (initial_width * 2, p.height), "black")
                     if mask_mode_checkbox:
                         latent_mask.paste(Isnet_mask,(initial_width, 0))
                     else:
@@ -418,14 +419,14 @@ class Script(scripts.Script):
                     (initial_width, p.height))
                     # frames.append(msk)
 
-                    # latent_mask = Image.new("RGB", (initial_width*2, p.height), "white")
+                    # latent_mask = Image.new("RGBA", (initial_width*2, p.height), "white")
                     # latent_draw = ImageDraw.Draw(latent_mask)
                     # latent_draw.rectangle((0,0,initial_width,p.height), fill="black")
                     if mask_mode_checkbox:
                         latent_mask = Isnet_mask
                     else:
                         latent_mask = Image.new(
-                            "RGB", (initial_width, p.height), "white")
+                            "RGBA", (initial_width, p.height), "white")
                     
                     latent_draw = ImageDraw.Draw(latent_mask)
                     latent_draw.rectangle(
@@ -439,15 +440,19 @@ class Script(scripts.Script):
                     latent_mask = Isnet_mask
                 else:
                     latent_mask = Image.new(
-                        "RGB", (initial_width, p.height), "white")
+                        "RGBA", (initial_width, p.height), "white")
                 # p.latent_mask = latent_mask
                 p.image_mask = latent_mask
                 p.denoising_strength = first_denoise
                 p.control_net_input_image = p.control_net_input_image.resize(
                     (initial_width, p.height))
                 init_image_for_0 = Image.open(reference_imgs[0]).convert("RGBA").resize((p.width, p.height), Image.ANTIALIAS)
-                img2 = Image.new("RGBA", (initial_width, p.height), "white")
-                init_image_for_0 = Image.blend(img2, init_image_for_0, org_alpha)
+                if org_alpha != 1:
+                    img2 = Image.new("RGBA", (initial_width, p.height), "white")
+                    loopback_image = Image.blend(img2, loopback_image, org_alpha)
+                if color_correction_enabled:
+                    p.color_corrections = [
+                        processing.setup_color_correction(init_image_for_0)]
                 p.init_images = [init_image_for_0
                     ]
                 # frames.append(p.control_net_input_image)
@@ -587,5 +592,5 @@ class Script(scripts.Script):
 
 
 if __name__ == '__main__':
-    A = Image.new("RGB", (100 * 3, 200), "black")
+    A = Image.new("RGBA", (100 * 3, 200), "black")
     print('done')
