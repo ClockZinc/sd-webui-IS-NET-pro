@@ -27,11 +27,11 @@ import re
 import pandas as pd
 sys.path.append('./')
 from isnet_pro.Inference2 import mask_generate
-MY_GLOBAL_VALUE_ITERATION_NUM = 0
+# MY_GLOBAL_VALUE_ITERATION_NUM = 0
 
-def modify_global_variable(num):
-    global MY_GLOBAL_VALUE_ITERATION_NUM
-    MY_GLOBAL_VALUE_ITERATION_NUM = num
+# def modify_global_variable(num):
+#     global MY_GLOBAL_VALUE_ITERATION_NUM
+#     MY_GLOBAL_VALUE_ITERATION_NUM = num
 
 def gr_show(visible=True):
     return {"visible": visible, "__type__": "update"}
@@ -273,7 +273,7 @@ class Script(scripts.Script):
         p.n_iter = 1
 
         output_images, info = None, None
-        initial_seed = None
+        initial_seed = p.seed
         initial_info = None
 
         initial_width = p.width
@@ -312,7 +312,7 @@ class Script(scripts.Script):
             print("ISNET::MFR::Single mode OPEN!!!")
             third_frame_image = "None"
         for i in range(loops):
-            modify_global_variable(int(i))
+            # modify_global_variable(int(i))
             if state.interrupted:
                 break
             filename = os.path.basename(reference_imgs[i])
@@ -472,6 +472,7 @@ class Script(scripts.Script):
 
             if initial_seed is None:
                 initial_seed = processed.seed
+            if initial_info is None:
                 initial_info = processed.info
 
             init_img = processed.images[0]
@@ -557,7 +558,7 @@ class Script(scripts.Script):
 
             p.init_images = [init_img]
             if(freeze_seed):
-                p.seed = processed.seed
+                p.seed = initial_seed
             else:
                 p.seed = processed.seed + 1
             # p.seed = processed.seed
