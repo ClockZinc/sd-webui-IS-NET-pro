@@ -14,7 +14,6 @@ from modules.sd_samplers import samplers
 from modules.shared import opts, cmd_opts, state
 from modules import deepbooru
 from modules.script_callbacks import ImageSaveParams, before_image_saved_callback
-from modules.shared import opts, cmd_opts, state
 from modules.sd_hijack import model_hijack
 
 import pandas as pd
@@ -74,6 +73,7 @@ class Script(scripts.Script):
         return is_img2img
 
     def ui(self, is_img2img):
+        self.num_controlnet_units = opts.data.get("control_net_max_models_num", 1)
         with gr.Row():
             input_dir = gr.Textbox(label='Input directory', lines=1)
             output_dir = gr.Textbox(label='Output directory', lines=1)
@@ -122,10 +122,9 @@ class Script(scripts.Script):
         with gr.Row():
             single_mode_checkbox = gr.Checkbox(label="单图模式\\single mode")
             mask_mode_checkbox = gr.Checkbox(label="掩码重绘\\mask inpaint mode")
+            path_name_match_checkbox = gr.Checkbox(label="与图片名称匹配\\mask_name matches figure_name")
         with gr.Column(variant='panel',visible= False) as mask_mode_block:
-            # IS_frame_input_dir = gr.Textbox(label='图片输入地址\\frame_input_dir',lines=1,placeholder='input\\folder')
-            # IS_frame_output_dir = gr.Textbox(label='图片输出地址\\frame_output_dir',lines=1,placeholder='output\\folder',value='./outputs/Isnet_output')
-            
+            # 这是mask的设置
             with gr.Row(variant='panel'):
                 reverse_checkbox = gr.Checkbox(label="反向选取\\reverse mode")
                 IS_recstrth = gr.Slider(
@@ -134,20 +133,39 @@ class Script(scripts.Script):
                     step=1,
                     label="背景去除强度\\background remove strength",
                     value=30)
+                
+            # 如果没有就使用默认文件夹内的
             mask_dir = gr.Textbox(label='Mask Input directory', lines=1)
-            path_name_match_checkbox = gr.Checkbox(label="与图片名称匹配\\mask_name matches figure_name") # 开启后，mask的名字和path的名字一致
-            # with gr.Column(variant='panel'):
-            #     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
-            #     IS_btn2 = gr.Button(value="开始批量生成\\gene_batch_frame")
-            # IS_btn2.click(pic_generation2,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],outputs=IS_out1)
+            # 开启后，mask的名字和path的名字一致
+             
+
+            # 使用Controlnet_inpaint
+            using_ctrl_net_inpaint_checkbox = gr.Checkbox(label="使用Controlnet_inpaint\\use controlnet inpaint")
+            with gr.Row(visible=False) as ctrlnet_inpaint_block:
+                ctrlnet_inpaint_unit_num = gr.Dropdown(
+                    [f"Controlnet Unit {i}" for i in range(self.num_controlnet_units)], label="ControlNet inpaint索引\\ControlNet inpaint model index")
+        
+        change_controlnet_image_checkbox = gr.Checkbox(label="批次更改controlnet的图片\\Use another image as ControlNet input")
+        with gr.Row(visible=False) as ctrlnet_image_info:
+                    ctrlnet_image_dirs = []
+                    with gr.Group():
+                        with gr.Tabs():
+                            for i in range(self.num_controlnet_units):
+                                with gr.Tab(f"Controlnet Unit {i}", open=False):
+                                    ctrlnet_image_dirs.append(gr.Textbox(label='controlnet图片输入地址\\ControlNet Image input directory', lines=1))
+
 
         def visible_mask_mode(mask_mode_checkbox):
             if mask_mode_checkbox:
                 return gr.update(visible=True)
             else:
                 return gr.update(visible=False)
+        # 掩码重绘开启与否，使用的话就打开？
         mask_mode_checkbox.change(fn=visible_mask_mode,inputs=[mask_mode_checkbox],outputs=[mask_mode_block])
-
+        # 是否使用ctrlnet自带的inpaint,使用就打开就行了。
+        using_ctrl_net_inpaint_checkbox.change(fn=visible_mask_mode,inputs=[using_ctrl_net_inpaint_checkbox],outputs=[ctrlnet_inpaint_block])
+        # 更换controlnet的输入图片
+        change_controlnet_image_checkbox.change(fn=visible_mask_mode,inputs=[change_controlnet_image_checkbox],outputs=[ctrlnet_image_info])
 
         with gr.Row():
             use_txt = gr.Checkbox(label='Read tags from text files')
@@ -199,6 +217,10 @@ class Script(scripts.Script):
             IS_recstrth,
             mask_dir,
             path_name_match_checkbox,
+            using_ctrl_net_inpaint_checkbox,
+            change_controlnet_image_checkbox,
+            ctrlnet_inpaint_unit_num,
+            *ctrlnet_image_dirs,
             ]
 
     def run(
@@ -223,6 +245,10 @@ class Script(scripts.Script):
             IS_recstrth,
             mask_dir,
             path_name_match_checkbox,
+            using_ctrl_net_inpaint_checkbox,
+            change_controlnet_image_checkbox,
+            ctrlnet_inpaint_unit_num,
+            *ctrlnet_image_dirs,
             ):
         freeze_seed = not unfreeze_seed
         # second_flag = False
@@ -257,6 +283,11 @@ class Script(scripts.Script):
             else:
                 mask_imgs = [os.path.join(mask_path,f) for f in os.listdir(mask_path) if re.match(r'.+\.(jpg|png)$',f)]
                 mask_imgs = sort_images(mask_imgs)
+        
+        if change_controlnet_image_checkbox:
+            ctrl_net_image_dir = [input_dir if ctrlnet_image_dir=="" else ctrlnet_image_dir for ctrlnet_image_dir in ctrlnet_image_dirs]
+            # 这边默认是和原文件同名
+            cn_images = [[os.path.join(ctrlnet_image_dir, os.path.basename(path)) for path in reference_imgs] for ctrlnet_image_dir in ctrlnet_image_dirs]
 
         print(f"ISnet::MFR::will process {len(reference_imgs):4d} images")
 
@@ -368,15 +399,31 @@ class Script(scripts.Script):
                         p.color_corrections = [
                             processing.setup_color_correction(img)]
 
-                    msk = Image.new("RGBA", (initial_width * 3, p.height))
-                    msk.paste(Image.open(reference_imgs[i - 1]).convert("RGBA").resize(
-                        (initial_width, p.height), Image.ANTIALIAS), (0, 0))
-                    msk.paste(p.control_net_input_image, (initial_width, 0))
 
-                    msk.paste(Image.open(reference_imgs[third_image_index]).convert("RGBA").resize(
-                        (initial_width, p.height), Image.ANTIALIAS), (initial_width * 2, 0))
+                    if change_controlnet_image_checkbox:
+                        msk = []
+                        # 这边需要创建不少图呢 疯狂cv 大江户
+                        for cn_image in cn_images:
+                            m = Image.new("RGB", (initial_width * 3, p.height))
+                            m.paste(Image.open(cn_image[i - 1]).resize(
+                                (initial_width, p.height), Image.ANTIALIAS), (0, 0))
+                            m.paste(Image.open(cn_image[i]).resize(
+                                (initial_width, p.height), Image.ANTIALIAS), (initial_width, 0))
+                            m.paste(Image.open(cn_image[third_image_index]).resize(
+                                (initial_width, p.height), Image.ANTIALIAS), (initial_width * 2, 0))
+                            msk.append(m)
+                    else:
+                        msk = Image.new("RGBA", (initial_width * 3, p.height))
+                        msk.paste(Image.open(reference_imgs[i - 1]).convert("RGBA").resize(
+                            (initial_width, p.height), Image.ANTIALIAS), (0, 0))
+                        msk.paste(p.control_net_input_image, (initial_width, 0))
+                        msk.paste(Image.open(reference_imgs[third_image_index]).convert("RGBA").resize(
+                            (initial_width, p.height), Image.ANTIALIAS), (initial_width * 2, 0))
+                        
                     p.control_net_input_image = msk
 
+
+                    # 这是生成mask的蒙版的
                     latent_mask = Image.new(
                         "RGBA", (initial_width * 3, p.height), "black")
                     if mask_mode_checkbox:
@@ -397,11 +444,19 @@ class Script(scripts.Script):
                     if color_correction_enabled:
                         p.color_corrections = [
                             processing.setup_color_correction(img)]
-
-                    msk = Image.new("RGBA", (initial_width * 2, p.height))
-                    msk.paste(Image.open(reference_imgs[i - 1]).convert("RGBA").resize(
-                        (initial_width, p.height), Image.ANTIALIAS), (0, 0))
-                    msk.paste(p.control_net_input_image, (initial_width, 0))
+                        
+                    if change_controlnet_image_checkbox:
+                        msk = []
+                        for cn_image in cn_images:
+                            m = Image.new("RGB", (initial_width * 2, p.height))
+                            m.paste(Image.open(cn_image[i - 1]).resize((initial_width, p.height), Image.ANTIALIAS), (0, 0))
+                            m.paste(Image.open(cn_image[i]).resize((initial_width, p.height), Image.ANTIALIAS), (initial_width, 0))
+                        msk.append(m) 
+                    else :
+                        msk = Image.new("RGBA", (initial_width * 2, p.height))
+                        msk.paste(Image.open(reference_imgs[i - 1]).convert("RGBA").resize(
+                            (initial_width, p.height), Image.ANTIALIAS), (0, 0))
+                        msk.paste(p.control_net_input_image, (initial_width, 0))
                     p.control_net_input_image = msk
                     # frames.append(msk)
 
@@ -420,6 +475,8 @@ class Script(scripts.Script):
                     # p.latent_mask = latent_mask
                     p.image_mask = latent_mask
                     p.denoising_strength = original_denoise
+
+                # 单图模式
                 elif single_mode_checkbox:
                     p.width = initial_width
                     img = loopback_image.copy()
@@ -427,8 +484,13 @@ class Script(scripts.Script):
                     if color_correction_enabled:
                         p.color_corrections = [
                             processing.setup_color_correction(img)]
-                    p.control_net_input_image = p.control_net_input_image.resize(
-                    (initial_width, p.height))
+                    
+                    if change_controlnet_image_checkbox:
+                        msk = [Image.open(cn_image[i]).resize((initial_width, p.height)) for cn_image in cn_images] 
+                    else :
+                        msk = p.control_net_input_image.resize((initial_width, p.height), Image.ANTIALIAS)
+
+                    p.control_net_input_image = msk
                     # frames.append(msk)
 
                     # latent_mask = Image.new("RGBA", (initial_width*2, p.height), "white")
@@ -456,8 +518,12 @@ class Script(scripts.Script):
                 # p.latent_mask = latent_mask
                 p.image_mask = latent_mask
                 p.denoising_strength = first_denoise
-                p.control_net_input_image = p.control_net_input_image.resize(
-                    (initial_width, p.height))
+                if change_controlnet_image_checkbox:
+                    msk = [Image.open(cn_image[i]).resize((initial_width, p.height)) for cn_image in cn_images] 
+                else :
+                    msk = p.control_net_input_image.resize((initial_width, p.height), Image.ANTIALIAS)
+                p.control_net_input_image = msk
+                
                 init_image_for_0 = Image.open(reference_imgs[0]).convert("RGBA").resize((p.width, p.height), Image.ANTIALIAS)
                 if org_alpha != 1:
                     img2 = Image.new("RGBA", (initial_width, p.height), "white")
@@ -482,7 +548,11 @@ class Script(scripts.Script):
             if use_csv or use_txt:
                 p.prompt = original_prompt + prompt_list[i]
 
-            # state.job = f"Iteration {i + 1}/{loops}, batch {n + 1}/{batch_count}"
+            
+            # 首先是考虑ctrlnet inpaint
+            if using_ctrl_net_inpaint_checkbox:
+                p.control_net_input_image = [p.control_net_input_image] * self.num_controlnet_units
+                p.control_net_input_image[int(ctrlnet_inpaint_unit_num[-1])] = {"image": p.init_images[0], "mask": p.image_mask.convert("L")}
 
             processed = processing.process_images(p)
 
