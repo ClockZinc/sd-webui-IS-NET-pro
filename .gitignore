@@ -12,3 +12,5 @@
 # Ignore large media files
 # my_large_file.mp4
 *.pth
+*.pyc
+test_mask.py

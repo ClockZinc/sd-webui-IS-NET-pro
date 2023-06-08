@@ -59,8 +59,12 @@ def get_image_mask(dataset_path,output_dir,IS_recstrth,reverse_flag):
     # return mask
 
 def sort_images(lst):
-    pattern = re.compile(r"\d+(?=\.)(?!.*\d)")
-    return sorted(lst, key=lambda x: int(re.search(pattern, x).group()))
+    pattern = re.compile(r"[\d\u4e00-\u9fa5]+(?=\.)(?!.*[\d\u4e00-\u9fa5])")
+    try:
+        sorted_lst  = sorted(lst, key=lambda x: int(re.search(pattern, x).group()))
+        return sorted_lst
+    except:
+        return lst
 
 class Script(scripts.Script):
     def title(self):
@@ -131,6 +135,7 @@ class Script(scripts.Script):
                     label="背景去除强度\\background remove strength",
                     value=30)
             mask_dir = gr.Textbox(label='Mask Input directory', lines=1)
+            path_name_match_checkbox = gr.Checkbox(label="与图片名称匹配\\mask_name matches figure_name") # 开启后，mask的名字和path的名字一致
             # with gr.Column(variant='panel'):
             #     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
             #     IS_btn2 = gr.Button(value="开始批量生成\\gene_batch_frame")
@@ -193,6 +198,7 @@ class Script(scripts.Script):
             reverse_checkbox,
             IS_recstrth,
             mask_dir,
+            path_name_match_checkbox,
             ]
 
     def run(
@@ -216,6 +222,7 @@ class Script(scripts.Script):
             reverse_checkbox,
             IS_recstrth,
             mask_dir,
+            path_name_match_checkbox,
             ):
         freeze_seed = not unfreeze_seed
         # second_flag = False
@@ -227,7 +234,7 @@ class Script(scripts.Script):
             if mask_dir: # 
                 mask_path = mask_dir
                 if not os.path.exists(mask_path):
-                    print("Mask folder not detected")
+                    print("Mask folder not detected 未检测到蒙版路径")
             else:
                 mask_path = os.path.join(output_dir,'mask_folder')
                 if not os.path.exists(mask_path):
@@ -243,8 +250,11 @@ class Script(scripts.Script):
         reference_imgs = [os.path.join(input_dir,f) for f in os.listdir(input_dir) if re.match(r'.+\.(jpg|png)$',f)]
         reference_imgs = sort_images(reference_imgs)
         if mask_mode_checkbox:
-            mask_imgs = [os.path.join(mask_path,f) for f in os.listdir(mask_path) if re.match(r'.+\.(jpg|png)$',f)]
-            mask_imgs = sort_images(mask_imgs)
+            if path_name_match_checkbox:
+                mask_imgs = reference_imgs
+            else:
+                mask_imgs = [os.path.join(mask_path,f) for f in os.listdir(mask_path) if re.match(r'.+\.(jpg|png)$',f)]
+                mask_imgs = sort_images(mask_imgs)
         # print(f'Will process following files: {", ".join(reference_imgs)}')
         print(f"ISnet::MFR::will process {len(reference_imgs):4d} images")
 
