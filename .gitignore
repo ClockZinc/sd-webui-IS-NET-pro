@@ -1,6 +1,6 @@
 # Ignore node_modules folder
 # node_modules/
-
+__pycache__/
 # Ignore log files
 # *.log
 
@@ -13,4 +13,4 @@
 # my_large_file.mp4
 *.pth
 *.pyc
-test_mask.py
+test.py

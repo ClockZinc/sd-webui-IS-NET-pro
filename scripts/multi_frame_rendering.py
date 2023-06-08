@@ -247,15 +247,17 @@ class Script(scripts.Script):
             prompt_list = [i[0] for i in table_content.values.tolist()]
             prompt_list.insert(0, prompt_list.pop())
 
+        # 图片信息与蒙版信息收集
         reference_imgs = [os.path.join(input_dir,f) for f in os.listdir(input_dir) if re.match(r'.+\.(jpg|png)$',f)]
         reference_imgs = sort_images(reference_imgs)
         if mask_mode_checkbox:
             if path_name_match_checkbox:
-                mask_imgs = reference_imgs
+                mask_imgs = [os.path.join(mask_path,f) for f in os.listdir(input_dir) if re.match(r'.+\.(jpg|png)$',f)]
+                mask_imgs = sort_images(mask_imgs)
             else:
                 mask_imgs = [os.path.join(mask_path,f) for f in os.listdir(mask_path) if re.match(r'.+\.(jpg|png)$',f)]
                 mask_imgs = sort_images(mask_imgs)
-        # print(f'Will process following files: {", ".join(reference_imgs)}')
+
         print(f"ISnet::MFR::will process {len(reference_imgs):4d} images")
 
         if use_txt:
@@ -473,8 +475,7 @@ class Script(scripts.Script):
             if append_interrogation != "None":
                 p.prompt = original_prompt
                 if append_interrogation == "CLIP":
-                    p.prompt += shared.interrogator.interrogate(
-                        p.init_images[0])
+                    p.prompt += shared.interrogator.interrogate(p.init_images[0])
                 elif append_interrogation == "DeepBooru":
                     p.prompt += deepbooru.model.tag(p.init_images[0])
 
@@ -579,21 +580,6 @@ class Script(scripts.Script):
             # p.seed = processed.seed
             if i == 0:
                 history = init_img
-            # history.append(processed.images[0])
-            # frames.append(processed.images[0])
-
-        # grid = images.image_grid(history, rows=1)
-        # if opts.grid_save:
-        #     images.save_image(grid, p.outpath_grids, "grid", initial_seed, p.prompt, opts.grid_format, info=info, short_filename=not opts.grid_extended_filename, grid=True, p=p)
-
-        # grids.append(grid)
-        # # all_images += history + frames
-        # all_images += history
-
-        # p.seed = p.seed+1
-
-        # if opts.return_grid:
-        #     all_images = grids + all_images
 
         processed = Processed(p, [], initial_seed, initial_info)
         print("\r\n-------------------\r\n ISNET::MFR is DONE! \r\n-------------------")
