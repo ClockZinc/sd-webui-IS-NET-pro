@@ -140,10 +140,10 @@ class Script(scripts.Script):
              
 
             # 使用Controlnet_inpaint
-            using_ctrl_net_inpaint_checkbox = gr.Checkbox(label="使用Controlnet_inpaint\\use controlnet inpaint")
-            with gr.Row(visible=False) as ctrlnet_inpaint_block:
-                ctrlnet_inpaint_unit_num = gr.Dropdown(
-                    [f"Controlnet Unit {i}" for i in range(self.num_controlnet_units)], label="ControlNet inpaint索引\\ControlNet inpaint model index")
+        using_ctrl_net_inpaint_checkbox = gr.Checkbox(label="使用Controlnet_inpaint\\use controlnet inpaint")
+        with gr.Row(visible=False) as ctrlnet_inpaint_block:
+            ctrlnet_inpaint_unit_num = gr.Dropdown(
+                [f"Controlnet Unit {i}" for i in range(self.num_controlnet_units)], label="ControlNet inpaint索引\\ControlNet inpaint model index")
         
         change_controlnet_image_checkbox = gr.Checkbox(label="批次更改controlnet的图片\\Use another image as ControlNet input")
         with gr.Row(visible=False) as ctrlnet_image_info:
