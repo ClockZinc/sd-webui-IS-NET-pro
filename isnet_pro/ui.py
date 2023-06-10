@@ -2,6 +2,8 @@ import gradio as gr
 from isnet_pro.video2frame import video2frame,ui_frame2video
 from isnet_pro.Inference2 import pic_generation_single,pic_generation2,ui_invert_image, mask_generate
 import modules.shared as shared
+def gr_show(visible=True):
+    return {"visible": visible, "__type__": "update"}
 def on_ui_tabs():
     with gr.Blocks(analytics_enabled=False) as pro_interface:
         with gr.Row().style(equal_height=False):
@@ -83,7 +85,9 @@ def on_ui_tabs():
                                     value="白色背景\\white_background")
                                 
                                 with gr.Row(variant='panel'):
-                                    reverse_checkbox = gr.Checkbox(label="反向选取\\reverse mode")
+                                    with gr.Column(variant='panel'):
+                                        reverse_checkbox = gr.Checkbox(label="反向选取\\reverse mode")
+                                        use_other_mask_checkbox = gr.Checkbox(label="使用外部的蒙版\\another mask")
                                     IS_recstrth = gr.Slider(
                                         minimum=1,
                                         maximum=255,
@@ -96,6 +100,9 @@ def on_ui_tabs():
                                         step=1,
                                         label="主体保留强度\\Principal retention strength",
                                         value=40)
+                                IS_mask_dir = gr.Textbox(label="蒙版图片地址\\mask_input_dir",lines=1,placeholder='mask dir that generate by yourself',visible=False)
+                                use_other_mask_checkbox.change(fn = gr_show, inputs=[use_other_mask_checkbox],outputs=[IS_mask_dir])
+
                                 markdown1 = gr.Markdown(""" 
                                 ### 可选信息填写\\Optional Info
                                 下面两个请根据自己情况填写，纯色背景的时候需要填写目标RGB，自定义背景和固定背景需要填写背景图片地址,固定背景默认文件夹中的第一张图片  
@@ -103,8 +110,9 @@ def on_ui_tabs():
                                 For `self_design_background` and `fixed_background`, you need to fill in the background image address.
                                 The `fixed_background` mode will uses the FIRST image in the image_dir.
                                 """,visible=False)                                
-                                IS_rgb_input = gr.Textbox(label="目标RGB\\target RGB",value='100,100,100',visible=False)
-                                IS_bcgrd_dir = gr.Textbox(label="背景图片地址\\background_input_dir",lines=1,placeholder='input\\folder  NOT input\\image.png!!!',visible=False)
+                                IS_rgb_input = gr.Textbox(label="目标RGB\\target RGB",value='10,154,56',visible=False)
+                                IS_bcgrd_dir = gr.Textbox(label="背景图片地址\\background_input_dir",lines=1,placeholder='input\\folder, which is NOT input\\image.png!!!',visible=False)
+                                
                                 def IS_mode_change(choices):
                                     if choices == "纯色背景\\Solid_Color_Background" :
                                         return gr.update(visible=True),gr.update(visible=False),gr.update(visible=True)
@@ -120,15 +128,26 @@ def on_ui_tabs():
                                     IS_btn3 = gr.Button(value="中断\\Interupt")
                                     
                                 IS_btn4.click(fn=mask_generate,inputs=[IS_mode,IS_frame_input_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],outputs=[])
-                                IS_btn2.click(pic_generation2,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],outputs=IS_out1)
+                                IS_btn2.click(pic_generation2,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox,IS_mask_dir],outputs=IS_out1)
                                 IS_btn3.click(fn=lambda: shared.state.interrupt(),inputs=[],outputs=[])
                             with gr.Column(variant='panel'):
-                                IS_single_image_input_path = gr.Image(source='upload',type='filepath')
-                                IS_single_mode_btn = gr.Button(value="开始生成单图\\gene_single_image")
-                                image_show_path = gr.Gallery(label='output images').style(grid=2,height=720)
-                                IS_single_mode_btn.click(fn=pic_generation_single,
-                                                        inputs=[IS_mode,IS_single_image_input_path,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],
-                                                        outputs=[image_show_path])
+                                with gr.Tabs():
+                                    with gr.TabItem(label='自动抠图\\auto Image cutout'):
+                                        IS_single_image_input_path = gr.Image(source='upload',type='filepath')
+                                        IS_single_mode_btn = gr.Button(value="开始生成单图\\gene_single_image")
+                                        image_show_path = gr.Gallery(label='output images').style(grid=2,height=720)
+                                        IS_single_mode_btn.click(fn=pic_generation_single,
+                                                                inputs=[IS_mode,IS_single_image_input_path,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],
+                                                                outputs=[image_show_path])
+                                    with gr.TabItem(label='手动抠图\\auto Image cutout'):
+                                        with gr.Row(variant='panel'):
+                                            IS_single_image_input_path1 = gr.Image(source='upload',type='filepath')
+                                            IS_single_mask_image_path = gr.Image(source='upload',type='filepath')
+                                        IS_single_mode_btn1 = gr.Button(value="开始生成单图\\gene_single_image")
+                                        image_show_path1 = gr.Gallery(label='output images').style(grid=2,height=720)
+                                        IS_single_mode_btn1.click(fn=pic_generation_single,
+                                                                inputs=[IS_mode,IS_single_image_input_path1,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox,IS_single_mask_image_path],
+                                                                outputs=[image_show_path1])
                                                     
                     with gr.TabItem(label='InventColor'):
                         with gr.Row(variant='panel'):

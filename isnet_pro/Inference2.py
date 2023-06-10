@@ -120,7 +120,7 @@ def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground,IS_rec
     }
     return mode_dict[mode]()
 
-def pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag = False):
+def pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag = False,IS_mask_dir=""):
     state.interrupted = False
     if not os.path.exists(result_path):
         os.makedirs(result_path)
@@ -134,13 +134,13 @@ def pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim
     }   
     img_mode = options[img_mode]
     ui_set_aim_bacground_rgb = tuple(map(int, ui_set_aim_bacground_rgb.split(",")))
-    IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
+    IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag,IS_mask_dir)
     print(f"\n:) done! results in {result_path}")
-    return f":) done! results in {result_path}"
+    return ":) done!"
 
 
 
-def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
+def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag,IS_mask_dir):
     # ui_set_aim_bacground_rgb = (255,212,32)
     # img_mode = 'self_design_Background'
     # dataset_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset"  #Your dataset path
@@ -151,20 +151,24 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
     # result_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset_result"  #The folder path that you want to save the results
     input_size=[1024,1024]
     # input_size=[1024,1024]
-    net=ISNetDIS()
+    if IS_mask_dir=="":# 为空的时候再加载模型，不为空就不会有模型加载
+        net=ISNetDIS()
 
-    if torch.cuda.is_available():
-        net.load_state_dict(torch.load(model_path))
-        net=net.cuda()
-    else:
-        net.load_state_dict(torch.load(model_path,map_location="cpu"))
-        print('USING CPU!!!!')
-    net.eval()   
+        if torch.cuda.is_available():
+            net.load_state_dict(torch.load(model_path))
+            net=net.cuda()
+        else:
+            net.load_state_dict(torch.load(model_path,map_location="cpu"))
+            print('USING CPU!!!!')
+        net.eval()   
     # bc_list = glob(background_path+".jpg")+glob(background_path+".JPG")+glob(background_path+".jpeg")+glob(background_path+".JPEG")+glob(background_path+".png")+glob(background_path+".PNG")+glob(background_path+".bmp")+glob(background_path+".BMP")+glob(background_path+".tiff")+glob(background_path+".TIFF")
     # im_list = glob(dataset_path+"\*.jpg")+glob(dataset_path+"\*.JPG")+glob(dataset_path+"\*.jpeg")+glob(dataset_path+"\*.JPEG")+glob(dataset_path+"\*.png")+glob(dataset_path+"\*.PNG")+glob(dataset_path+"\*.bmp")+glob(dataset_path+"\*.BMP")+glob(dataset_path+"\*.tiff")+glob(dataset_path+"\*.TIFF")
     im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '/*.' + ext.lower())]
     if img_mode =='self_design_Background' or img_mode =='fixed_background':
         bc_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(background_path + '/*.' + ext.lower())]
+    if IS_mask_dir != "":
+        grey_image_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(IS_mask_dir + '/*.' + ext.lower())]
+        print(f"mask detected:{grey_image_list}")
 
 
     with torch.no_grad():
@@ -173,24 +177,25 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
                 break
             ###
             # 输入输出的处理
-            im = io.imread(im_path)
-            if im.shape[2] == 4:
-                im=transparent_image2whitebackground_image(im)
-            if len(im.shape) < 3:
-                im = im[:, :, np.newaxis]
-            im_shp=im.shape[0:2]
-            im_tensor = torch.tensor(im, dtype=torch.float32).permute(2,0,1)
-            im_tensor = F.upsample(torch.unsqueeze(im_tensor,0), input_size, mode="bilinear").type(torch.uint8)
-            image = torch.divide(im_tensor,255.0)
-            image = normalize(image,[0.5,0.5,0.5],[1.0,1.0,1.0])
+            if IS_mask_dir=="":
+                im = io.imread(im_path)
+                if im.shape[2] == 4:
+                    im=transparent_image2whitebackground_image(im)
+                if len(im.shape) < 3:
+                    im = im[:, :, np.newaxis]
+                im_shp=im.shape[0:2]
+                im_tensor = torch.tensor(im, dtype=torch.float32).permute(2,0,1)
+                im_tensor = F.upsample(torch.unsqueeze(im_tensor,0), input_size, mode="bilinear").type(torch.uint8)
+                image = torch.divide(im_tensor,255.0)
+                image = normalize(image,[0.5,0.5,0.5],[1.0,1.0,1.0])
 
-            if torch.cuda.is_available():
-                image=image.cuda()
-            result=net(image)
-            result=torch.squeeze(F.upsample(result[0][0],im_shp,mode='bilinear'),0)
-            ma = torch.max(result)
-            mi = torch.min(result)
-            result = (result-mi)/(ma-mi)
+                if torch.cuda.is_available():
+                    image=image.cuda()
+                result=net(image)
+                result=torch.squeeze(F.upsample(result[0][0],im_shp,mode='bilinear'),0)
+                ma = torch.max(result)
+                mi = torch.min(result)
+                result = (result-mi)/(ma-mi)
             # im_name=im_path.split('\\')[-1].split('.')[0]
             filename = os.path.basename(im_path)
             im_name = os.path.splitext(filename)[0]
@@ -202,7 +207,11 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
             # 这是一个带有RGB值的变量。
             img1 = io.imread(im_path)
             # 这是一个零到1的变量
-            grey = result.permute(1,2,0).cpu().data.numpy()
+            if IS_mask_dir == "":
+                grey = result.permute(1,2,0).cpu().data.numpy()
+            else :
+                grey = io.imread(grey_image_list[i],as_gray = True)
+                grey = grey[:,:,np.newaxis]
 
             
             # 背景
@@ -237,15 +246,23 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
             
 
             io.imsave(os.path.join(result_path,im_name+".png"),np.uint8(res_pic))
+            if IS_mask_dir == "":
+                grey = np.tile(grey, (1, 1, 3))
+                grey = (grey*255).astype(np.uint8)
+                io.imsave(os.path.join(result_path,"mask",im_name+".png"),grey)
             # return gr.update(value=result, visible=True, interactive=False)
             # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
-    del net
+    if IS_mask_dir=="":
+        del net
     torch.cuda.empty_cache()
 
-def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
+def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag,IS_single_mask_image_path=""):
     if not os.path.exists(result_path):
         os.makedirs(result_path)
         print(f"output_folder_not_found create folder:{result_path}")
+    if not os.path.exists(os.path.join(result_path,"mask")):
+        os.makedirs(os.path.join(result_path,"mask"))
+        print(f"make mask folder in {result_path}")
     options = {
     "透明背景\\alpha_channel": "alpha_channel",
     "白色背景\\white_background": "white_background",
@@ -255,34 +272,40 @@ def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_s
     }   
     img_mode = options[img_mode]
     ui_set_aim_bacground_rgb = tuple(map(int, ui_set_aim_bacground_rgb.split(",")))
-    res_pic,mask= IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
-    mask = Image.fromarray(mask, mode='RGB')
-    res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
-    print(f"\n:) done! results in {result_path}")
-    return [res_pic,mask]
+    if IS_single_mask_image_path=="":
+        res_pic,mask= IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
+        mask = Image.fromarray(mask, mode='RGB')
+        res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
+        print(f"\n:) done! results in {result_path}")
+        return [res_pic,mask]
+    else :
+        res_pic= IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag,IS_single_mask_image_path)
+        res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
+        print(f"\n:) done! results in {result_path}")
+        return [res_pic]
 
-
-def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
+def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag,IS_single_mask_image_path=""):
     
     # ui_set_aim_bacground_rgb = (255,212,32)
     # img_mode = 'self_design_Background'
     # dataset_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset"  #Your dataset path
     # background_path = "D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_background_dataset"
     print("\n IS-NET_pro: start generating...")
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(script_dir, '..', 'saved_models', 'IS-Net', 'isnet-general-use.pth')
-    # result_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset_result"  #The folder path that you want to save the results
-    input_size=[1024,1024]
-    # input_size=[1024,1024]
-    net=ISNetDIS()
+    if IS_single_mask_image_path=="":
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(script_dir, '..', 'saved_models', 'IS-Net', 'isnet-general-use.pth')
+        # result_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset_result"  #The folder path that you want to save the results
+        input_size=[1024,1024]
+        # input_size=[1024,1024]
+        net=ISNetDIS()
 
-    if torch.cuda.is_available():
-        net.load_state_dict(torch.load(model_path))
-        net=net.cuda()
-    else:
-        net.load_state_dict(torch.load(model_path,map_location="cpu"))
-        print('USING CPU!!!!')
-    net.eval()   
+        if torch.cuda.is_available():
+            net.load_state_dict(torch.load(model_path))
+            net=net.cuda()
+        else:
+            net.load_state_dict(torch.load(model_path,map_location="cpu"))
+            print('USING CPU!!!!')
+        net.eval()   
     # bc_list = glob(background_path+".jpg")+glob(background_path+".JPG")+glob(background_path+".jpeg")+glob(background_path+".JPEG")+glob(background_path+".png")+glob(background_path+".PNG")+glob(background_path+".bmp")+glob(background_path+".BMP")+glob(background_path+".tiff")+glob(background_path+".TIFF")
     # im_list = glob(dataset_path+"\*.jpg")+glob(dataset_path+"\*.JPG")+glob(dataset_path+"\*.jpeg")+glob(dataset_path+"\*.JPEG")+glob(dataset_path+"\*.png")+glob(dataset_path+"\*.PNG")+glob(dataset_path+"\*.bmp")+glob(dataset_path+"\*.BMP")+glob(dataset_path+"\*.tiff")+glob(dataset_path+"\*.TIFF")
     im_list = [dataset_path]
@@ -290,30 +313,33 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
     # print(im_list)
     if img_mode =='self_design_Background' or img_mode =='fixed_background':
         bc_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(background_path + '/*.' + ext.lower())]
-
+    if IS_single_mask_image_path != "":
+        grey_image_list = [IS_single_mask_image_path]
+        print(f"mask detected:{grey_image_list}")
 
     with torch.no_grad():
         for i, im_path in tqdm(enumerate(im_list), total=len(im_list)):
             ###
             # 输入输出的处理
-            im = io.imread(im_path)
-            if im.shape[2] == 4:
-                im=transparent_image2whitebackground_image(im)
-            if len(im.shape) < 3:
-                im = im[:, :, np.newaxis]
-            im_shp=im.shape[0:2]
-            im_tensor = torch.tensor(im, dtype=torch.float32).permute(2,0,1)
-            im_tensor = F.upsample(torch.unsqueeze(im_tensor,0), input_size, mode="bilinear").type(torch.uint8)
-            image = torch.divide(im_tensor,255.0)
-            image = normalize(image,[0.5,0.5,0.5],[1.0,1.0,1.0])
+            if IS_single_mask_image_path=="":
+                im = io.imread(im_path)
+                if im.shape[2] == 4:
+                    im=transparent_image2whitebackground_image(im)
+                if len(im.shape) < 3:
+                    im = im[:, :, np.newaxis]
+                im_shp=im.shape[0:2]
+                im_tensor = torch.tensor(im, dtype=torch.float32).permute(2,0,1)
+                im_tensor = F.upsample(torch.unsqueeze(im_tensor,0), input_size, mode="bilinear").type(torch.uint8)
+                image = torch.divide(im_tensor,255.0)
+                image = normalize(image,[0.5,0.5,0.5],[1.0,1.0,1.0])
 
-            if torch.cuda.is_available():
-                image=image.cuda()
-            result=net(image)
-            result=torch.squeeze(F.upsample(result[0][0],im_shp,mode='bilinear'),0)
-            ma = torch.max(result)
-            mi = torch.min(result)
-            result = (result-mi)/(ma-mi)
+                if torch.cuda.is_available():
+                    image=image.cuda()
+                result=net(image)
+                result=torch.squeeze(F.upsample(result[0][0],im_shp,mode='bilinear'),0)
+                ma = torch.max(result)
+                mi = torch.min(result)
+                result = (result-mi)/(ma-mi)
             # im_name=im_path.split('\\')[-1].split('.')[0]
             filename = os.path.basename(im_path)
             im_name = os.path.splitext(filename)[0]
@@ -322,10 +348,12 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
 
 
             # 重读图像，原先的都不知道啥样了
-            # 这是一个带有RGB值的变量。
             img1 = io.imread(im_path)
-            # 这是一个零到1的变量
-            grey = result.permute(1,2,0).cpu().data.numpy()
+            if IS_single_mask_image_path == "":
+                grey = result.permute(1,2,0).cpu().data.numpy()
+            else :
+                grey = io.imread(grey_image_list[i],as_gray = True)
+                grey = grey[:,:,np.newaxis]
 
             
             # 背景
@@ -360,22 +388,32 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
             res_pic = pic_feature_abstract(img1,grey,mode = img_mode,img_bacground = img_bacground,IS_recstrth = IS_recstrth, IS_recstrth_low = IS_recstrth_low)
             
             res_pic = np.uint8(res_pic)
-
-            grey = np.tile(grey, (1, 1, 3))
-            grey = (grey*255).astype(np.uint8)
-            io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
-            io.imsave(os.path.join(result_path,"mask",im_name+".png"),grey)
-            # return gr.update(value=result, visible=True, interactive=False)
-            # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
-
-            return res_pic,grey
-    del net
+            if IS_single_mask_image_path=="":
+                grey = np.tile(grey, (1, 1, 3))
+                grey = (grey*255).astype(np.uint8)
+                io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
+                io.imsave(os.path.join(result_path,"mask",im_name+".png"),grey)
+                return res_pic,grey
+            else:
+                io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
+                return res_pic
+        
+    if IS_single_mask_image_path=="":
+        del net
     torch.cuda.empty_cache()
 
 def mask_generate(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
     """
     Output is purely mask
     """
+    if output_dir == './outputs/Isnet_output':
+        mask_ouput_folder_path = os.path.join(output_dir,"mask")
+
+    else:
+        mask_ouput_folder_path = output_dir
+    if not os.path.exists(mask_ouput_folder_path):
+        os.makedirs(mask_ouput_folder_path)
+        print(f"make mask folder:{mask_ouput_folder_path}")
     ui_set_aim_bacground_rgb = tuple(map(int, ui_set_aim_bacground_rgb.split(",")))
     mask = IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
     print("\n:) mask generate done!")
@@ -405,9 +443,13 @@ def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,
                 break
             filename = os.path.basename(im_path)
             im_name = os.path.splitext(filename)[0]
-            mask_ouput_path = os.path.join(output_dir,im_name+".png")
+            if output_dir == './outputs/Isnet_output':
+                mask_ouput_path = os.path.join(output_dir,"mask",im_name+".png")
+            else:
+                mask_ouput_path = os.path.join(output_dir,im_name+".png")
+
             if os.path.exists(mask_ouput_path):
-                print("skip generates:",mask_ouput_path)
+                print("\nSkip generates:",mask_ouput_path)
                 continue
             ###
             # 输入输出的处理
