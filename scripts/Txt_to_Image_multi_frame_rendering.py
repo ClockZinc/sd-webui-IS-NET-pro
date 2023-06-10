@@ -67,7 +67,7 @@ def sort_images(lst):
 
 class Script(scripts.Script):
     def title(self):
-        return "(ISNET) Multi-frame rendering For text2image"
+        return "(ISNET beta) Multi-frame rendering For text2image"
 
     def show(self, is_img2img):
         return not is_img2img
@@ -285,11 +285,13 @@ class Script(scripts.Script):
                 mask_imgs = sort_images(mask_imgs)
         
         if change_controlnet_image_checkbox:
-            ctrl_net_image_dir = [input_dir if ctrlnet_image_dir=="" else ctrlnet_image_dir for ctrlnet_image_dir in ctrlnet_image_dirs]
+            ctrl_net_image_dirs = [input_dir if ctrlnet_image_dir=="" else ctrlnet_image_dir for ctrlnet_image_dir in ctrlnet_image_dirs]
             # 这边默认是和原文件同名
-            cn_images = [[os.path.join(ctrlnet_image_dir, os.path.basename(path)) for path in reference_imgs] for ctrlnet_image_dir in ctrlnet_image_dirs]
+            cn_images = [[os.path.join(ctrlnet_image_dir, os.path.basename(path)) for path in reference_imgs] for ctrlnet_image_dir in ctrl_net_image_dirs]
+            print(cn_images)
 
         print(f"ISnet::MFR::will process {len(reference_imgs):4d} images")
+        
 
         if use_txt:
             if txt_path == "":
@@ -519,7 +521,7 @@ class Script(scripts.Script):
                 p.image_mask = latent_mask
                 p.denoising_strength = first_denoise
                 if change_controlnet_image_checkbox:
-                    msk = [Image.open(cn_image[i]).resize((initial_width, p.height)) for cn_image in cn_images] 
+                    msk = [Image.open(cn_image[0]).resize((initial_width, p.height)) for cn_image in cn_images] 
                 else :
                     msk = p.control_net_input_image.resize((initial_width, p.height), Image.ANTIALIAS)
                 p.control_net_input_image = msk

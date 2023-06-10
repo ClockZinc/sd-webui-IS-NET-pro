@@ -144,6 +144,7 @@ class Script(scripts.Script):
         with gr.Row(visible=False) as ctrlnet_inpaint_block:
             ctrlnet_inpaint_unit_num = gr.Dropdown(
                 [f"Controlnet Unit {i}" for i in range(self.num_controlnet_units)], label="ControlNet inpaint索引\\ControlNet inpaint model index")
+            test_full_inpaint_checkbox = gr.Checkbox(label="(test)use controlnet inpaint but not use any SD inpaint")
         
         change_controlnet_image_checkbox = gr.Checkbox(label="批次更改controlnet的图片\\Use another image as ControlNet input")
         with gr.Row(visible=False) as ctrlnet_image_info:
@@ -153,6 +154,9 @@ class Script(scripts.Script):
                             for i in range(self.num_controlnet_units):
                                 with gr.Tab(f"Controlnet Unit {i}", open=False):
                                     ctrlnet_image_dirs.append(gr.Textbox(label='controlnet图片输入地址\\ControlNet Image input directory', lines=1))
+                                    ctrlnet_image_dirs.append(gr.Checkbox(label="固定单张图片\\fixed controlnet image"))
+
+
 
 
         def visible_mask_mode(mask_mode_checkbox):
@@ -220,6 +224,7 @@ class Script(scripts.Script):
             using_ctrl_net_inpaint_checkbox,
             change_controlnet_image_checkbox,
             ctrlnet_inpaint_unit_num,
+            test_full_inpaint_checkbox,
             *ctrlnet_image_dirs,
             ]
 
@@ -248,6 +253,7 @@ class Script(scripts.Script):
             using_ctrl_net_inpaint_checkbox,
             change_controlnet_image_checkbox,
             ctrlnet_inpaint_unit_num,
+            test_full_inpaint_checkbox,
             *ctrlnet_image_dirs,
             ):
         freeze_seed = not unfreeze_seed
@@ -285,9 +291,24 @@ class Script(scripts.Script):
                 mask_imgs = sort_images(mask_imgs)
         
         if change_controlnet_image_checkbox:
-            ctrl_net_image_dir = [input_dir if ctrlnet_image_dir=="" else ctrlnet_image_dir for ctrlnet_image_dir in ctrlnet_image_dirs]
+            single_ctrlnet_image_flags = ctrlnet_image_dirs[1::2]
+            ctrlnet_image_dirs = ctrlnet_image_dirs[::2]
+            ctrlnet_image_dirs = [input_dir if ctrlnet_image_dir=="" else ctrlnet_image_dir for ctrlnet_image_dir in ctrlnet_image_dirs]
             # 这边默认是和原文件同名
-            cn_images = [[os.path.join(ctrlnet_image_dir, os.path.basename(path)) for path in reference_imgs] for ctrlnet_image_dir in ctrlnet_image_dirs]
+            cn_images = []
+            for ctrlnet_image_dir, single_ctrlnet_image_flag in zip(ctrlnet_image_dirs,single_ctrlnet_image_flags):
+                # 如果是开启的单图模式，将默认第一张图的路径
+                if single_ctrlnet_image_flag:
+                    image_paths = [os.path.join(ctrlnet_image_dir, os.listdir(ctrlnet_image_dir)[0]) for _ in reference_imgs]
+                # 如果不是单图模式，判断第一张图片路径是否存在
+                else : 
+                    # 如果存在，则进行匹配
+                    if os.path.exists(os.path.join(ctrlnet_image_dir,os.path.basename(reference_imgs[0]))):
+                        image_paths = [os.path.join(ctrlnet_image_dir, os.path.basename(path)) for path in reference_imgs]
+                    # 如果不存在，就默认里面所有文件了，直接开摆！
+                    else :
+                        image_paths = [os.path.join(ctrlnet_image_dir, f) for f in os.listdir(ctrlnet_image_dir) if f.endswith(('.jpg', '.jpeg', '.png', '.gif'))]
+                cn_images.append(image_paths)
 
         print(f"ISnet::MFR::will process {len(reference_imgs):4d} images")
 
@@ -432,7 +453,18 @@ class Script(scripts.Script):
                         latent_draw = ImageDraw.Draw(latent_mask)
                         latent_draw.rectangle(
                             (initial_width, 0, initial_width * 2, p.height), fill="white")
-                    p.image_mask = latent_mask
+                        
+                    # 如果没有测试全图SDinpaint     
+                    if not test_full_inpaint_checkbox:
+                        p.image_mask = latent_mask
+                    else :
+                        latent_mask1 = Image.new(
+                        "RGBA", (initial_width * 3, p.height), "black")
+                        latent_draw = ImageDraw.Draw(latent_mask1)
+                        latent_draw.rectangle(
+                            (initial_width, 0, initial_width * 2, p.height), fill="white")
+                        p.image_mask = latent_mask1
+
                     p.denoising_strength = original_denoise
                 elif not single_mode_checkbox:
                     p.width = initial_width * 2
@@ -473,7 +505,16 @@ class Script(scripts.Script):
                             (initial_width, 0, initial_width * 2, p.height), fill="white")
 
                     # p.latent_mask = latent_mask
-                    p.image_mask = latent_mask
+                    # 如果没有测试全图SDinpaint
+                    if not test_full_inpaint_checkbox:
+                        p.image_mask = latent_mask
+                    else :
+                        latent_mask1 = Image.new(
+                        "RGBA", (initial_width * 2, p.height), "black")
+                        latent_draw = ImageDraw.Draw(latent_mask1)
+                        latent_draw.rectangle(
+                            (initial_width, 0, initial_width * 2, p.height), fill="white")
+                        p.image_mask = latent_mask1
                     p.denoising_strength = original_denoise
 
                 # 单图模式
@@ -502,12 +543,19 @@ class Script(scripts.Script):
                         latent_mask = Image.new(
                             "RGBA", (initial_width, p.height), "white")
                     
-                    latent_draw = ImageDraw.Draw(latent_mask)
-                    latent_draw.rectangle(
-                        (initial_width, 0, initial_width * 2, p.height), fill="white")
+                    # latent_draw = ImageDraw.Draw(latent_mask)
+                    # latent_draw.rectangle(
+                    #     (initial_width, 0, initial_width * 2, p.height), fill="white")
 
                     # p.latent_mask = latent_mask
-                    p.image_mask = latent_mask
+                    # 如果没有测试全图SDinpaint
+                    if not test_full_inpaint_checkbox:
+                        p.image_mask = latent_mask
+                    else :
+                        latent_mask1 = Image.new(
+                            "RGBA", (initial_width, p.height), "white")
+                        p.image_mask = latent_mask
+
                     p.denoising_strength = original_denoise
             else:
                 if mask_mode_checkbox:
@@ -516,7 +564,14 @@ class Script(scripts.Script):
                     latent_mask = Image.new(
                         "RGBA", (initial_width, p.height), "white")
                 # p.latent_mask = latent_mask
-                p.image_mask = latent_mask
+                # 如果没有测试全图SDinpaint
+                if not test_full_inpaint_checkbox:
+                    p.image_mask = latent_mask
+                else :
+                    latent_mask1 = Image.new(
+                        "RGBA", (initial_width, p.height), "white")
+                    p.image_mask = latent_mask1
+
                 p.denoising_strength = first_denoise
                 if change_controlnet_image_checkbox:
                     msk = [Image.open(cn_image[i]).resize((initial_width, p.height)) for cn_image in cn_images] 
@@ -551,8 +606,9 @@ class Script(scripts.Script):
             
             # 首先是考虑ctrlnet inpaint
             if using_ctrl_net_inpaint_checkbox:
-                p.control_net_input_image = [p.control_net_input_image] * self.num_controlnet_units
-                p.control_net_input_image[int(ctrlnet_inpaint_unit_num[-1])] = {"image": p.init_images[0], "mask": p.image_mask.convert("L")}
+                if not change_controlnet_image_checkbox:
+                    p.control_net_input_image = [p.control_net_input_image] * self.num_controlnet_units
+                p.control_net_input_image[int(ctrlnet_inpaint_unit_num[-1])] = {"image": p.init_images[0], "mask": latent_mask.convert("L")}
 
             processed = processing.process_images(p)
 

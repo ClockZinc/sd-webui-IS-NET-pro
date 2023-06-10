@@ -124,6 +124,7 @@ def pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim
     state.interrupted = False
     if not os.path.exists(result_path):
         os.makedirs(result_path)
+        print(f"output_folder_not_found create folder:{result_path}")
     options = {
     "透明背景\\alpha_channel": "alpha_channel",
     "白色背景\\white_background": "white_background",
@@ -134,8 +135,8 @@ def pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim
     img_mode = options[img_mode]
     ui_set_aim_bacground_rgb = tuple(map(int, ui_set_aim_bacground_rgb.split(",")))
     IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
-    print("\n:) done!")
-    return ":) done"
+    print(f"\n:) done! results in {result_path}")
+    return f":) done! results in {result_path}"
 
 
 
@@ -244,6 +245,7 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
 def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
     if not os.path.exists(result_path):
         os.makedirs(result_path)
+        print(f"output_folder_not_found create folder:{result_path}")
     options = {
     "透明背景\\alpha_channel": "alpha_channel",
     "白色背景\\white_background": "white_background",
@@ -256,7 +258,7 @@ def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_s
     res_pic,mask= IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
     mask = Image.fromarray(mask, mode='RGB')
     res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
-    print("\n:) done!")
+    print(f"\n:) done! results in {result_path}")
     return [res_pic,mask]
 
 
@@ -287,7 +289,7 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
     # im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '/*.' + ext.lower())]
     # print(im_list)
     if img_mode =='self_design_Background' or img_mode =='fixed_background':
-        bc_list = background_path
+        bc_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(background_path + '/*.' + ext.lower())]
 
 
     with torch.no_grad():
@@ -362,7 +364,7 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
             grey = np.tile(grey, (1, 1, 3))
             grey = (grey*255).astype(np.uint8)
             io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
-            io.imsave(os.path.join(result_path,"mask"+im_name+".png"),grey)
+            io.imsave(os.path.join(result_path,"mask",im_name+".png"),grey)
             # return gr.update(value=result, visible=True, interactive=False)
             # io.imsave(os.path.join(result_path,im_name+".png"),(pic1*255).astype(np.uint8))
 
@@ -374,24 +376,13 @@ def mask_generate(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_r
     """
     Output is purely mask
     """
-    options = {
-    "透明背景\\alpha_channel": "alpha_channel",
-    "白色背景\\white_background": "white_background",
-    "纯色背景\\Solid_Color_Background": "Solid_Color_Background",
-    "自定义背景\\self_design_Background": "self_design_Background",
-    "固定背景\\fixed_background": "fixed_background"
-    }   
-    img_mode = options[img_mode]
     ui_set_aim_bacground_rgb = tuple(map(int, ui_set_aim_bacground_rgb.split(",")))
     mask = IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
     print("\n:) mask generate done!")
     return mask
+
 def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
     
-    # ui_set_aim_bacground_rgb = (255,212,32)
-    # img_mode = 'self_design_Background'
-    # dataset_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset"  #Your dataset path
-    # background_path = "D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_background_dataset"
     print("\n IS-NET_pro: start generating...")
     script_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(script_dir, '..', 'saved_models', 'IS-Net', 'isnet-general-use.pth')
@@ -407,15 +398,7 @@ def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,
         net.load_state_dict(torch.load(model_path,map_location="cpu"))
         print('USING CPU!!!!')
     net.eval()   
-    # bc_list = glob(background_path+".jpg")+glob(background_path+".JPG")+glob(background_path+".jpeg")+glob(background_path+".JPEG")+glob(background_path+".png")+glob(background_path+".PNG")+glob(background_path+".bmp")+glob(background_path+".BMP")+glob(background_path+".tiff")+glob(background_path+".TIFF")
-    # im_list = glob(dataset_path+"\*.jpg")+glob(dataset_path+"\*.JPG")+glob(dataset_path+"\*.jpeg")+glob(dataset_path+"\*.JPEG")+glob(dataset_path+"\*.png")+glob(dataset_path+"\*.PNG")+glob(dataset_path+"\*.bmp")+glob(dataset_path+"\*.BMP")+glob(dataset_path+"\*.tiff")+glob(dataset_path+"\*.TIFF")
-    # im_list = [dataset_path]
     im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '/*.' + ext.lower())]
-    # print(im_list)
-    if img_mode =='self_design_Background' or img_mode =='fixed_background':
-        bc_list = background_path
-
-
     with torch.no_grad():
         for i, im_path in tqdm(enumerate(im_list), total=len(im_list)):
             if state.interrupted:
@@ -446,47 +429,14 @@ def IS_inference_mask(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,
             ma = torch.max(result)
             mi = torch.min(result)
             result = (result-mi)/(ma-mi)
-            # im_name=im_path.split('\\')[-1].split('.')[0]
-            # filename = os.path.basename(im_path)
-            # im_name = os.path.splitext(filename)[0]
-            # end
-            ###
-
-
             # 重读图像，原先的都不知道啥样了
             # 这是一个带有RGB值的变量。
             img1 = io.imread(im_path)
             # 这是一个零到1的变量
             grey = result.permute(1,2,0).cpu().data.numpy()
 
-            
-            # 背景
-            if img_mode == 'alpha_channel':
-                img_bacground = 0
-
-            elif img_mode == 'white_background':
-                aim_bacground_rgb = (255,255,255)
-                img_bacground = np.zeros((*img1.shape[0:2], 3), dtype=np.uint8)
-                img_bacground[:] = aim_bacground_rgb
-
-            elif img_mode == 'Solid_Color_Background':
-                aim_bacground_rgb = ui_set_aim_bacground_rgb
-                img_bacground = np.zeros((*img1.shape[0:2], 3), dtype=np.uint8)
-                img_bacground[:] = aim_bacground_rgb
-
-            elif img_mode == 'self_design_Background':
-                bc_path = bc_list[i]
-                img_bacground = io.imread(bc_path)
-
-            elif img_mode == 'fixed_background':
-                if i==0 :
-                    bc_path = bc_list[i]
-                    img_bacground = io.imread(bc_path)
-
-
-
             grey[grey <= IS_recstrth] = 0
-            grey[grey > IS_recstrth] = 1
+            grey[grey > IS_recstrth_low] = 1
             if reverse_flag:
                 grey = 1 - grey
             grey = np.tile(grey, (1, 1, 3))

@@ -1,6 +1,6 @@
 import gradio as gr
 from isnet_pro.video2frame import video2frame,ui_frame2video
-from isnet_pro.Inference2 import pic_generation_single,pic_generation2,ui_invert_image
+from isnet_pro.Inference2 import pic_generation_single,pic_generation2,ui_invert_image, mask_generate
 import modules.shared as shared
 def on_ui_tabs():
     with gr.Blocks(analytics_enabled=False) as pro_interface:
@@ -116,7 +116,10 @@ def on_ui_tabs():
                                 with gr.Column(variant='panel'):
                                     IS_out1 = gr.Textbox(label="log info",interactive=False,visible=True,placeholder="output log")
                                     IS_btn2 = gr.Button(value="开始批量生成\\gene_batch_frame")
+                                    IS_btn4 = gr.Button(value="仅生成蒙版\\gene_mask_only")
                                     IS_btn3 = gr.Button(value="中断\\Interupt")
+                                    
+                                IS_btn4.click(fn=mask_generate,inputs=[IS_mode,IS_frame_input_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],outputs=[])
                                 IS_btn2.click(pic_generation2,inputs=[IS_mode,IS_frame_input_dir,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],outputs=IS_out1)
                                 IS_btn3.click(fn=lambda: shared.state.interrupt(),inputs=[],outputs=[])
                             with gr.Column(variant='panel'):
