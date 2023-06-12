@@ -568,9 +568,10 @@ class Script(scripts.Script):
                 if not test_full_inpaint_checkbox:
                     p.image_mask = latent_mask
                 else :
-                    latent_mask1 = Image.new(
-                        "RGBA", (initial_width, p.height), "white")
-                    p.image_mask = latent_mask1
+                    # latent_mask1 = Image.new(
+                    #     "RGBA", (initial_width, p.height), "white")
+                    # p.image_mask = latent_mask1
+                    pass
 
                 p.denoising_strength = first_denoise
                 if change_controlnet_image_checkbox:

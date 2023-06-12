@@ -125,6 +125,9 @@ def pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim
     if not os.path.exists(result_path):
         os.makedirs(result_path)
         print(f"output_folder_not_found create folder:{result_path}")
+    if not os.path.exists(os.path.join(result_path,"mask")):
+        os.makedirs(os.path.join(result_path,"mask"))
+        print(f"make mask folder in {result_path}")
     options = {
     "透明背景\\alpha_channel": "alpha_channel",
     "白色背景\\white_background": "white_background",
@@ -145,6 +148,8 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
     # img_mode = 'self_design_Background'
     # dataset_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset"  #Your dataset path
     # background_path = "D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_background_dataset"
+
+
     print("\n IS-NET_pro: start generating...")
     script_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(script_dir, '..', 'saved_models', 'IS-Net', 'isnet-general-use.pth')
@@ -153,7 +158,6 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
     # input_size=[1024,1024]
     if IS_mask_dir=="":# 为空的时候再加载模型，不为空就不会有模型加载
         net=ISNetDIS()
-
         if torch.cuda.is_available():
             net.load_state_dict(torch.load(model_path))
             net=net.cuda()
