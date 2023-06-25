@@ -105,8 +105,17 @@ def download_model(model_name, url, model_dir='saved_models'):
             urllib.request.urlretrieve(url, filename=file_path, reporthook=lambda x, y, z: t.update(y))
         print('Download isnet.pth completed.')
 # download_model(model_name = 'isnet.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/blob/main/isnet.pth',model_dir='..\saved_models')
-download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth',model_dir='../saved_models/IS-Net')
-
+try:
+    download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth',model_dir='../saved_models/IS-Net')
+except:
+    print(
+          '###################--WARNING--########################',
+        '\n||                                                  ||',
+        '\n|| ISNET model download failed CANNOT use isnetPro!!||',
+        '\n||                                                  ||',
+        '\n|| details are in QQ Group:792358210                ||',
+        '\n##################--ISnetPro2--#######################',
+        end='\n')
 def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground,IS_recstrth,IS_recstrth_low = 0.95):
     if mode == 'self_design_Background' or mode ==  'fixed_background':
         if img_bacground.shape[2]==4:
