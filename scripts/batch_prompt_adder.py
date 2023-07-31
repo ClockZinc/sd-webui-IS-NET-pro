@@ -60,8 +60,8 @@ class Script(scripts.Script):
         p.prompt = self.original_prompt + prompt_list[self.current_txt_count]
 
         # 测试用的
-        print(f'count :: {self.current_txt_count}\n',
-              f'prompt :: {p.prompt}\n')
+        # print(f'count :: {self.current_txt_count}\n',
+        #       f'prompt :: {p.prompt}\n')
         # 指针增加
         self.current_txt_count += 1
         
