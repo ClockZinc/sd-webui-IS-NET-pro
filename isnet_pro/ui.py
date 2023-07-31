@@ -133,20 +133,20 @@ def on_ui_tabs():
                             with gr.Column(variant='panel'):
                                 with gr.Tabs():
                                     with gr.TabItem(label='自动抠图\\auto Image cutout'):
-                                        IS_single_image_input_path = gr.Image(source='upload',type='filepath')
+                                        IS_single_image_input_numpy_data = gr.Image(source='upload',type='numpy')
                                         IS_single_mode_btn = gr.Button(value="开始生成单图\\gene_single_image")
                                         image_show_path = gr.Gallery(label='output images').style(grid=2,height=720)
                                         IS_single_mode_btn.click(fn=pic_generation_single,
-                                                                inputs=[IS_mode,IS_single_image_input_path,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],
+                                                                inputs=[IS_mode,IS_single_image_input_numpy_data,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox],
                                                                 outputs=[image_show_path])
                                     with gr.TabItem(label='手动抠图\\auto Image cutout'):
                                         with gr.Row(variant='panel'):
-                                            IS_single_image_input_path1 = gr.Image(source='upload',type='filepath')
-                                            IS_single_mask_image_path = gr.Image(source='upload',type='filepath')
+                                            IS_single_image_input_numpy_data1 = gr.Image(source='upload',type='numpy')
+                                            IS_single_mask_image_numpy_data = gr.Image(source='upload',type='numpy')
                                         IS_single_mode_btn1 = gr.Button(value="开始生成单图\\gene_single_image")
                                         image_show_path1 = gr.Gallery(label='output images').style(grid=2,height=720)
                                         IS_single_mode_btn1.click(fn=pic_generation_single,
-                                                                inputs=[IS_mode,IS_single_image_input_path1,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox,IS_single_mask_image_path],
+                                                                inputs=[IS_mode,IS_single_image_input_numpy_data1,IS_bcgrd_dir,IS_frame_output_dir,IS_rgb_input,IS_recstrth,IS_recstrth_low,reverse_checkbox,IS_single_mask_image_numpy_data],
                                                                 outputs=[image_show_path1])
                                                     
                     with gr.TabItem(label='InventColor'):

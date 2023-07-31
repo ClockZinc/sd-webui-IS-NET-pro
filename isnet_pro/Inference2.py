@@ -269,7 +269,7 @@ def IS_inference(img_mode,dataset_path,background_path,result_path,ui_set_aim_ba
         del net
     torch.cuda.empty_cache()
 
-def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag,IS_single_mask_image_path=""):
+def pic_generation_single(img_mode,img_numpy_data,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag,IS_single_mask_image_numpy_data=""):
     if not os.path.exists(result_path):
         os.makedirs(result_path)
         print(f"output_folder_not_found create folder:{result_path}")
@@ -285,26 +285,27 @@ def pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_s
     }   
     img_mode = options[img_mode]
     ui_set_aim_bacground_rgb = tuple(map(int, ui_set_aim_bacground_rgb.split(",")))
-    if IS_single_mask_image_path=="":
-        res_pic,mask= IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
-        mask = Image.fromarray(mask, mode='RGB')
-        res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
+    if IS_single_mask_image_numpy_data=="":
+        res_pic,mask= IS_inference_single(img_mode,img_numpy_data,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag)
+        # mask = Image.fromarray(mask, mode='RGB')
+        # res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
         print(f"\n:) done! results in {result_path}")
+        # print(type(res_pic),type(mask))
         return [res_pic,mask]
     else :
-        res_pic= IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag,IS_single_mask_image_path)
-        res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
+        res_pic= IS_inference_single(img_mode,img_numpy_data,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth/255,IS_recstrth_low/255,reverse_flag,IS_single_mask_image_numpy_data)
+        # res_pic = Image.fromarray((res_pic).astype(np.uint8), mode='RGB')
         print(f"\n:) done! results in {result_path}")
         return [res_pic]
 
-def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag,IS_single_mask_image_path=""):
+def IS_inference_single(img_mode,img_numpy_data,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag,IS_single_mask_image_numpy_data=""):
     
     # ui_set_aim_bacground_rgb = (255,212,32)
     # img_mode = 'self_design_Background'
     # dataset_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset"  #Your dataset path
     # background_path = "D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_background_dataset"
     print("\n IS-NET_pro: start generating...")
-    if IS_single_mask_image_path=="":
+    if IS_single_mask_image_numpy_data=="":
         script_dir = os.path.dirname(os.path.abspath(__file__))
         model_path = os.path.join(script_dir, '..', 'saved_models', 'IS-Net', 'isnet-general-use.pth')
         # result_path="D:\Doctoral_Career\Little_interest\DIS\demo_datasets\your_dataset_result"  #The folder path that you want to save the results
@@ -321,21 +322,21 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
         net.eval()   
     # bc_list = glob(background_path+".jpg")+glob(background_path+".JPG")+glob(background_path+".jpeg")+glob(background_path+".JPEG")+glob(background_path+".png")+glob(background_path+".PNG")+glob(background_path+".bmp")+glob(background_path+".BMP")+glob(background_path+".tiff")+glob(background_path+".TIFF")
     # im_list = glob(dataset_path+"\*.jpg")+glob(dataset_path+"\*.JPG")+glob(dataset_path+"\*.jpeg")+glob(dataset_path+"\*.JPEG")+glob(dataset_path+"\*.png")+glob(dataset_path+"\*.PNG")+glob(dataset_path+"\*.bmp")+glob(dataset_path+"\*.BMP")+glob(dataset_path+"\*.tiff")+glob(dataset_path+"\*.TIFF")
-    im_list = [dataset_path]
+    im_list = [img_numpy_data]
     # im_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(dataset_path + '/*.' + ext.lower())]
     # print(im_list)
     if img_mode =='self_design_Background' or img_mode =='fixed_background':
         bc_list = [file for ext in ['jpg', 'jpeg', 'png', 'bmp', 'tiff'] for file in glob(background_path + '/*.' + ext.lower())]
-    if IS_single_mask_image_path != "":
-        grey_image_list = [IS_single_mask_image_path]
-        print(f"mask detected:{grey_image_list}")
+    if IS_single_mask_image_numpy_data != "":
+        grey_image_list = [IS_single_mask_image_numpy_data]
+        print(f"mask detected!")
 
     with torch.no_grad():
-        for i, im_path in tqdm(enumerate(im_list), total=len(im_list)):
+        for i, im_numpy_data in tqdm(enumerate(im_list), total=len(im_list)):
             ###
             # 输入输出的处理
-            if IS_single_mask_image_path=="":
-                im = io.imread(im_path)
+            if IS_single_mask_image_numpy_data=="":
+                im = im_numpy_data
                 if im.shape[2] == 4:
                     im=transparent_image2whitebackground_image(im)
                 if len(im.shape) < 3:
@@ -354,18 +355,19 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
                 mi = torch.min(result)
                 result = (result-mi)/(ma-mi)
             # im_name=im_path.split('\\')[-1].split('.')[0]
-            filename = os.path.basename(im_path)
+            filename = time.strftime("%Y%m%d%H%M%S", time.localtime()) # 输出纯数字的时间
             im_name = os.path.splitext(filename)[0]
             # end
             ###
 
 
             # 重读图像，原先的都不知道啥样了
-            img1 = io.imread(im_path)
-            if IS_single_mask_image_path == "":
+            img1 = img_numpy_data
+            if IS_single_mask_image_numpy_data == "":
                 grey = result.permute(1,2,0).cpu().data.numpy()
             else :
-                grey = io.imread(grey_image_list[i],as_gray = True)
+                grey = color.rgb2gray(grey_image_list[i]) 
+                # grey = io.imread(grey_image_list[i],as_gray = True)
                 grey = grey[:,:,np.newaxis]
 
             
@@ -401,19 +403,23 @@ def IS_inference_single(img_mode,dataset_path,background_path,result_path,ui_set
             res_pic = pic_feature_abstract(img1,grey,mode = img_mode,img_bacground = img_bacground,IS_recstrth = IS_recstrth, IS_recstrth_low = IS_recstrth_low)
             
             res_pic = np.uint8(res_pic)
-            if IS_single_mask_image_path=="":
+            if IS_single_mask_image_numpy_data=="":
                 grey = np.tile(grey, (1, 1, 3))
                 grey = (grey*255).astype(np.uint8)
                 io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
                 io.imsave(os.path.join(result_path,"mask",im_name+".png"),grey)
+                if IS_single_mask_image_numpy_data=="":
+                    del net
+                torch.cuda.empty_cache()                
                 return res_pic,grey
             else:
                 io.imsave(os.path.join(result_path,im_name+".png"),res_pic)
+                if IS_single_mask_image_numpy_data=="":
+                    del net
+                torch.cuda.empty_cache()
                 return res_pic
         
-    if IS_single_mask_image_path=="":
-        del net
-    torch.cuda.empty_cache()
+
 
 def mask_generate(img_mode,dataset_path,output_dir,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low,reverse_flag):
     """
