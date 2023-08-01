@@ -157,7 +157,7 @@ class Script(scripts.Script):
         with gr.Column():
             input_dir = gr.Textbox(label='batch Image Input directory', lines=1)
             output_dir = gr.Textbox(label='batch Image Output directory', lines=1)
-            inpaint_mask_dir = gr.Textbox(label='inpaint Image Output directory', lines=1)
+            inpaint_mask_dir = gr.Textbox(label='inpaint Image Inpur directory', lines=1)
             # txt_dir = gr.Textbox(label='batch Image prompt.txt Input directory', lines=1)
             scale_by = gr.Slider(
             minimum=0,
