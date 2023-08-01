@@ -158,17 +158,17 @@ class Script(scripts.Script):
             input_dir = gr.Textbox(label='batch Image Input directory', lines=1)
             output_dir = gr.Textbox(label='batch Image Output directory', lines=1)
             inpaint_mask_dir = gr.Textbox(label='inpaint Image Output directory', lines=1)
-            txt_dir = gr.Textbox(label='batch Image prompt.txt Input directory', lines=1)
+            # txt_dir = gr.Textbox(label='batch Image prompt.txt Input directory', lines=1)
             scale_by = gr.Slider(
             minimum=0,
             maximum=1,
             step=0.01,
             label='scale_by',
             value=1)
-        return [input_dir,output_dir,txt_dir,inpaint_mask_dir,scale_by]
+        return [input_dir,output_dir,inpaint_mask_dir,scale_by]
     
     # 直接对p进行修改就行了,不需要返回值操作
-    def run(self,p:StableDiffusionProcessingImg2Img,input_dir,output_dir,txt_dir,inpaint_mask_dir,scale_by):
+    def run(self,p:StableDiffusionProcessingImg2Img,input_dir,output_dir,inpaint_mask_dir,scale_by):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         
