@@ -75,6 +75,31 @@ def invert_image(image):
 #     elif mode == 'self_design_Background':
 #         target_img = target_img * normalized_gray + img_bacground * (1-normalized_gray)
 #         return target_img
+def print_download_error(model_dir='saved_models'):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(current_dir, model_dir)
+    if not os.path.exists(model_path):
+        file_path_saved_models = os.path.join(current_dir, "../saved_models")
+        if not os.path.exists(file_path_saved_models):
+            os.mkdir(file_path_saved_models)
+        os.mkdir(model_path)
+    import shutil
+    file_path = os.path.abspath(model_path)
+    terminal_width = shutil.get_terminal_size().columns
+    print(
+    '||' + '#'*((terminal_width-15)//2) + '--WARNING--' + '#'*((terminal_width-15)//2) + '||',
+    '||' + '                                                            '.ljust(terminal_width - 4) + '||',
+    '||' + '    ISNET model download failed CANNOT use isnetPro!!         '.ljust(terminal_width - 4) + '||',
+    '||' + '    国内用户请在以下百度网盘链接中下载相关模型文件:             '.ljust(terminal_width - 4 - 23) + '||',
+    '||' + '    https://pan.baidu.com/s/1nzdGbSPwtYrHM034HKc4QA?pwd=xtdw'.ljust(terminal_width - 4) + '||',
+    '||' + '    将下载得到 isnet-general-use.pth 文件放至如下文件夹内： '.ljust(terminal_width - 4-16) + '||',
+    '||' +f'    {model_path} '.ljust(terminal_width-4) + '||',
+    '||' + '    details are in QQ Group:792358210                        '.ljust(terminal_width - 4) + '||',
+    '||' + '                                                            '.ljust(terminal_width - 4) + '||',
+    '||' + '#'*((terminal_width-17)//2) + '--ISnetPro2--' + '#'*((terminal_width-17)//2) + '||',
+    sep='\n'
+)
+    return file_path
 
 def download_model(model_name, url, model_dir='saved_models'):
     """
@@ -108,14 +133,8 @@ def download_model(model_name, url, model_dir='saved_models'):
 try:
     download_model(model_name = 'isnet-general-use.pth', url = 'https://huggingface.co/ClockZinc/IS-NET_pth/resolve/main/isnet-general-use.pth',model_dir='../saved_models/IS-Net')
 except:
-    print(
-          '###################--WARNING--########################',
-        '\n||                                                  ||',
-        '\n|| ISNET model download failed CANNOT use isnetPro!!||',
-        '\n||                                                  ||',
-        '\n|| details are in QQ Group:792358210                ||',
-        '\n##################--ISnetPro2--#######################',
-        end='\n')
+    print_download_error(model_dir='../saved_models/IS-Net')
+    
 def pic_feature_abstract(target_img, normalized_gray, mode, img_bacground,IS_recstrth,IS_recstrth_low = 0.95):
     if mode == 'self_design_Background' or mode ==  'fixed_background':
         if img_bacground.shape[2]==4:
