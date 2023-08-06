@@ -12,5 +12,5 @@ __pycache__/
 # Ignore large media files
 # my_large_file.mp4
 *.pth
-*.pyc
+*.cpython-310.pyc
 test.py
