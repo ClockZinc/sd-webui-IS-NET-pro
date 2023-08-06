@@ -93,7 +93,7 @@ def print_download_error(model_dir='saved_models'):
     '||' + '    国内用户请在以下百度网盘链接中下载相关模型文件:             '.ljust(terminal_width - 4 - 23) + '||',
     '||' + '    https://pan.baidu.com/s/1nzdGbSPwtYrHM034HKc4QA?pwd=xtdw'.ljust(terminal_width - 4) + '||',
     '||' + '    将下载得到 isnet-general-use.pth 文件放至如下文件夹内： '.ljust(terminal_width - 4-16) + '||',
-    '||' +f'    {model_path} '.ljust(terminal_width-4) + '||',
+    '||' +f'    {file_path} '.ljust(terminal_width-4) + '||',
     '||' + '    details are in QQ Group:792358210                        '.ljust(terminal_width - 4) + '||',
     '||' + '                                                            '.ljust(terminal_width - 4) + '||',
     '||' + '#'*((terminal_width-17)//2) + '--ISnetPro2--' + '#'*((terminal_width-17)//2) + '||',
@@ -532,13 +532,14 @@ if __name__ == '__main__':
     # if img.shape[2] == 4:
     #     img_bacground=transparent_image2whitebackground_image(img)
     # io.imsave(r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course2\output\00020.png',np.uint8(img_bacground))
-    img_mode = "白色背景\\white_background"
-    # img_mode = "透明背景\\alpha_channel"
-    # dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\test1'
-    dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\test_v2f\testinput\0028.png'
-    background_path = ''
-    result_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\test_v2f\testoutput'
-    ui_set_aim_bacground_rgb = "255,255,255"
-    IS_recstrth = 10
-    # pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth)
-    pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low = 20,reverse_flag = False)
+    # img_mode = "白色背景\\white_background"
+    # # img_mode = "透明背景\\alpha_channel"
+    # # dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\course1\test1'
+    # dataset_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\test_v2f\testinput\0028.png'
+    # background_path = ''
+    # result_path = r'D:\Doctoral_Career\Little_interest\novelAI\SD_img2img_Video\test\test_v2f\testoutput'
+    # ui_set_aim_bacground_rgb = "255,255,255"
+    # IS_recstrth = 10
+    # # pic_generation2(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth)
+    # pic_generation_single(img_mode,dataset_path,background_path,result_path,ui_set_aim_bacground_rgb,IS_recstrth,IS_recstrth_low = 20,reverse_flag = False)
+    print_download_error(model_dir='../saved_models/IS-Net')
