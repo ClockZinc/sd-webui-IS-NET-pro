@@ -119,11 +119,14 @@ def process_batch(p, input_dir, output_dir, inpaint_mask_dir, args, to_scale=Fal
 
 
         # 接入prompt
-        file = re.sub(r'\.(jpg|png|jpeg|webp)$', '.txt', image)
-        current_prompt = open(file, 'r').read().rstrip('\n')
-        p.prompt = prompt + current_prompt
-        print(f'current ite :{i}\n',
-              f'current prompt : {p.prompt}\n') 
+        try:
+            file = re.sub(r'\.(jpg|png|jpeg|webp)$', '.txt', image)
+            current_prompt = open(file, 'r').read().rstrip('\n')
+            p.prompt = prompt + current_prompt
+            print(f'current ite :{i}\n',
+                f'current prompt : {p.prompt}\n') 
+        except:
+            print("no txt detect")
         
         proc = process_images(p)
 
@@ -161,7 +164,7 @@ class Script(scripts.Script):
             # txt_dir = gr.Textbox(label='batch Image prompt.txt Input directory', lines=1)
             scale_by = gr.Slider(
             minimum=0,
-            maximum=1,
+            maximum=20,
             step=0.01,
             label='scale_by',
             value=1)
