@@ -168,6 +168,7 @@ class Script(scripts.Script):
             step=0.01,
             label='scale_by',
             value=1)
+            # scale_by = gr.Number(label='scale_by',value=1)
         return [input_dir,output_dir,inpaint_mask_dir,scale_by]
     
     # 直接对p进行修改就行了,不需要返回值操作
