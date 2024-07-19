@@ -94,7 +94,7 @@ def print_download_error(model_dir='saved_models'):
     '||' + '    https://pan.baidu.com/s/1nzdGbSPwtYrHM034HKc4QA?pwd=xtdw'.ljust(terminal_width - 4) + '||',
     '||' + '    将下载得到 isnet-general-use.pth 文件放至如下文件夹内： '.ljust(terminal_width - 4-16) + '||',
     '||' +f'    {file_path} '.ljust(terminal_width-4) + '||',
-    '||' + '    details are in QQ Group:792358210                        '.ljust(terminal_width - 4) + '||',
+    '||' + '    details are in QQ Group:954583069                        '.ljust(terminal_width - 4) + '||',
     '||' + '                                                            '.ljust(terminal_width - 4) + '||',
     '||' + '#'*((terminal_width-17)//2) + '--ISnetPro2--' + '#'*((terminal_width-17)//2) + '||',
     sep='\n'
